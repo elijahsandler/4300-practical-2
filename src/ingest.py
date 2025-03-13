@@ -5,7 +5,8 @@ import redis
 import numpy as np
 from redis.commands.search.query import Query
 import os
-import fitz
+import pymupdf
+import json
 
 # Initialize Redis connection
 redis_client = redis.Redis(host="localhost", port=6380, db=0)
@@ -61,13 +62,13 @@ def store_embedding(file: str, page: str, chunk: str, embedding: list):
             ).tobytes(),  # Store as byte array
         },
     )
-    print(f"Stored embedding for: {chunk}")
+    # print(f"Stored embedding for: {chunk}")
 
 
 # extract the text from a PDF by page
 def extract_text_from_pdf(pdf_path):
     """Extract text from a PDF file."""
-    doc = fitz.open(pdf_path)
+    doc = pymupdf.open(pdf_path)
     text_by_page = []
     for page_num, page in enumerate(doc):
         text_by_page.append((page_num, page.get_text()))
@@ -107,6 +108,45 @@ def process_pdfs(data_dir):
                     )
             print(f" -----> Processed {file_name}")
 
+def process_pys(data_dir):
+    for file_name in os.listdir(data_dir):
+        if file_name.endswith(".py"):
+            py_path = os.path.join(data_dir, file_name)
+            with open(py_path, "r", encoding="utf-8") as file:
+                code_text = file.read()
+            
+            chunks = split_text_into_chunks(code_text)
+            for chunk_index, chunk in enumerate(chunks):
+                embedding = get_embedding(chunk)
+                store_embedding(
+                    file=file_name,
+                    page="1",  # Treat the entire file as one page
+                    chunk=str(chunk),
+                    embedding=embedding,
+                )
+            print(f" -----> Processed {file_name}")
+
+def process_ipynbs(data_dir):
+    for file_name in os.listdir(data_dir):
+        if file_name.endswith(".ipynb"):
+            ipynb_path = os.path.join(data_dir, file_name)
+            with open(ipynb_path, "r", encoding="utf-8") as file:
+                notebook_data = json.load(file)
+            
+            for page_num, cell in enumerate(notebook_data.get("cells", [])):
+                if cell.get("cell_type") == "code":
+                    cell_text = "\n".join(cell.get("source", []))
+                    chunks = split_text_into_chunks(cell_text)
+                    for chunk_index, chunk in enumerate(chunks):
+                        embedding = get_embedding(chunk)
+                        store_embedding(
+                            file=file_name,
+                            page=str(page_num + 1),  # Treat each cell as a page
+                            chunk=str(chunk),
+                            embedding=embedding,
+                        )
+            print(f" -----> Processed {file_name}")
+
 
 def query_redis(query_text: str):
     q = (
@@ -130,7 +170,11 @@ def main():
     clear_redis_store()
     create_hnsw_index()
 
-    process_pdfs("../data/")
+    process_pdfs("./data/")
+    process_pys("./data/")
+    process_ipynbs("./data/")
+
+
     print("\n---Done processing PDFs---\n")
     query_redis("What is the capital of France?")
 
