@@ -1,5 +1,6 @@
 import redis
 import json
+import os
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import ollama
@@ -107,16 +108,27 @@ Answer:"""
 
     return response["message"]["content"]
 
+def clear_terminal():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+clear_terminal()
 
 def interactive_search():
     """Interactive search interface."""
     print("🔍 RAG Search Interface")
     print("Type 'exit' to quit")
+    print("Type 'clear' to clear terminal")
 
     while True:
         query = input("\nEnter your search query: ")
 
         if query.lower() == "exit":
+            break
+        elif query.lower() == 'clear':
+            clear_terminal()
+            print("🔍 RAG Search Interface")
+            print("Type 'exit' to quit")
+            print("Type 'clear' to clear terminal")
             break
 
         # Search for relevant embeddings
@@ -125,8 +137,11 @@ def interactive_search():
         # Generate RAG response
         response = generate_rag_response(query, context_results)
 
+        print("\n--- Query ---")
+        print(query)
+
         print("\n--- Response ---")
-        print(response)
+        print(response, '\n')
 
 
 # def store_embedding(file, page, chunk, embedding):
