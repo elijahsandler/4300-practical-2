@@ -7,6 +7,7 @@ from redis.commands.search.query import Query
 import os
 import pymupdf
 import json
+from time import time
 
 # Initialize Redis connection
 redis_client = redis.Redis(host="localhost", port=6380, db=0)
@@ -15,7 +16,6 @@ VECTOR_DIM = 768
 INDEX_NAME = "embedding_index"
 DOC_PREFIX = "doc:"
 DISTANCE_METRIC = "COSINE"
-
 
 # used to clear the redis vector store
 def clear_redis_store():
@@ -88,7 +88,6 @@ def split_text_into_chunks(text, chunk_size=300, overlap=50):
 
 # Process all PDF files in a given directory
 def process_pdfs(data_dir):
-
     for file_name in os.listdir(data_dir):
         if file_name.endswith(".pdf"):
             pdf_path = os.path.join(data_dir, file_name)
@@ -170,12 +169,13 @@ def main():
     clear_redis_store()
     create_hnsw_index()
 
+    s = time()
     process_pdfs("./data/")
     process_pys("./data/")
     process_ipynbs("./data/")
+    t = time() - s
+    print(f"\n---Processed documents in {t} seconds---\n")
 
-
-    print("\n---Done processing PDFs---\n")
     query_redis("What is the capital of France?")
 
 
