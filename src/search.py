@@ -129,19 +129,18 @@ def interactive_search():
             print("🔍 RAG Search Interface")
             print("Type 'exit' to quit")
             print("Type 'clear' to clear terminal")
-            break
+        else: 
+            # Search for relevant embeddings
+            context_results = search_embeddings(query)
 
-        # Search for relevant embeddings
-        context_results = search_embeddings(query)
+            # Generate RAG response
+            response = generate_rag_response(query, context_results)
 
-        # Generate RAG response
-        response = generate_rag_response(query, context_results)
+            print("\n--- Query ---")
+            print(query)
 
-        print("\n--- Query ---")
-        print(query)
-
-        print("\n--- Response ---")
-        print(response, '\n')
+            print("\n--- Response ---")
+            print(response.strip(), '\n')
 
 
 # def store_embedding(file, page, chunk, embedding):
