@@ -2,11 +2,8 @@ import redis
 import json
 import os
 import numpy as np
-from sentence_transformers import SentenceTransformer
 import ollama
 from redis.commands.search.query import Query
-from redis.commands.search.field import VectorField, TextField
-
 
 # Initialize models
 redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
@@ -75,7 +72,7 @@ def search_embeddings(query, top_k=3):
         return []
 
 
-def generate_rag_response(query, context_results, embedding_model='sentence_transformers_all_mpnet'):
+def generate_rag_response(query, context_results):
 
     # Prepare context string
     context_str = "\n".join(
@@ -101,11 +98,10 @@ Query: {query}
 Answer:"""
 
     # Generate response using Ollama
-    if embedding_model == 'ollama':
-        ollama_response = ollama.chat(
-            model="mistral:latest", messages=[{"role": "user", "content": prompt}]
-        )
-        return ollama_response["message"]["content"]
+    ollama_response = ollama.chat(
+        model="mistral:latest", messages=[{"role": "user", "content": prompt}]
+    )
+    return ollama_response["message"]["content"]
 
 def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')

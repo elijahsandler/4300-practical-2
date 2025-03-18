@@ -9,8 +9,8 @@ from redis.commands.search.field import VectorField, TextField
 
 
 # Initialize models
-sentence_transformers_all_minilm = SentenceTransformer("all-MiniLM-L6-v2")
-sentence_transformers_all_mpnet = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
+# sentence_transformers_all_minilm = SentenceTransformer("all-MiniLM-L6-v2")
+# sentence_transformers_all_mpnet = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
 
 VECTOR_DIM = 768
@@ -77,7 +77,7 @@ def search_embeddings(query, top_k=3):
         return []
 
 
-def generate_rag_response(query, context_results, embedding_model='sentence_transformers_all_mpnet'):
+def generate_rag_response(query, context_results, embedding_model='ollama'):
 
     # Prepare context string
     context_str = "\n".join(
@@ -109,15 +109,15 @@ Answer:"""
         )
         return ollama_response["message"]["content"]
 
-    # Generate response using sentence_transformers_all_minilm (sentence-transformers/all-MiniLM-L6-v2)
-    elif embedding_model == 'sentence_transformers_all_minilm':
-        sentence_transformers_all_minilm_response = sentence_transformers_all_minilm.encode(query) # text
-        return sentence_transformers_all_minilm_response
+    # # Generate response using sentence_transformers_all_minilm (sentence-transformers/all-MiniLM-L6-v2)
+    # elif embedding_model == 'sentence_transformers_all_minilm':
+    #     sentence_transformers_all_minilm_response = sentence_transformers_all_minilm.encode(query) # text
+    #     return sentence_transformers_all_minilm_response
 
-    # Generate response using sentence_transformers_all_mpnet (sentence-transformers/all-mpnet-base-v2)
-    elif embedding_model == 'sentence_transformers_all_mpnet':
-        sentence_transformers_all_mpnet_response = sentence_transformers_all_mpnet.encode(prompt) # sentence
-        return sentence_transformers_all_mpnet_response
+    # # Generate response using sentence_transformers_all_mpnet (sentence-transformers/all-mpnet-base-v2)
+    # elif embedding_model == 'sentence_transformers_all_mpnet':
+    #     sentence_transformers_all_mpnet_response = sentence_transformers_all_mpnet.encode(prompt) # sentence
+    #     return sentence_transformers_all_mpnet_response
 
 def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
