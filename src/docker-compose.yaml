@@ -1,0 +1,6 @@
+services:
+  redis-stack:
+    container_name: redis-stack
+    image: redis/redis-stack:latest
+    ports:
+      - "6380:6379" 
