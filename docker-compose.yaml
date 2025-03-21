@@ -4,3 +4,6 @@ services:
     image: redis/redis-stack:latest
     ports:
       - "6380:6379" 
+  chromadb:
+    container_name: chromadb
+    image: chromadb/chroma:latest

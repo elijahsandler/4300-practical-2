@@ -3,3 +3,4 @@ ollama
 redis
 numpy
 sentence_transformers
+chromadb
