@@ -7,3 +7,13 @@ services:
   chromadb:
     container_name: chromadb
     image: chromadb/chroma:latest
+  milvus:
+    image: milvusdb/milvus:latest
+    container_name: milvus
+    entrypoint: ["/usr/bin/tini", "--"]
+    command: ["/bin/bash", "-c", "milvus run"]
+    ports:
+      - "19530:19530"
+    volumes:
+      - /mnt/milvus/db:/var/lib/milvus
+      - /mnt/milvus/conf:/etc/milvus
