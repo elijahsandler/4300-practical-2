@@ -1,15 +1,15 @@
-import pymilvus
 import numpy as np
 import os
 import pymupdf
 import json
 from time import time
 import ollama
+from pymilvus import Collection, connections, FieldSchema, CollectionSchema, DataType
 
 # Milvus client initialization
 milvus_host = "localhost" 
 milvus_port = "19530"  # Default port for Milvus
-client = pymilvus.Milvus(host=milvus_host, port=milvus_port)
+connections.connect("default", host=milvus_host, port=milvus_port)  # Use connections.connect()
 
 VECTOR_DIM = 768
 COLLECTION_NAME = "embedding_collection"
@@ -17,21 +17,25 @@ DISTANCE_METRIC = "COSINE"
 
 # Create Milvus collection to store embeddings
 def create_milvus_collection():
-    if COLLECTION_NAME in client.list_collections():
+    try:
+        collection = Collection(COLLECTION_NAME)
         print(f"Collection {COLLECTION_NAME} already exists.")
         return
+    except Exception as e:
+        print(f"Collection {COLLECTION_NAME} does not exist. Creating a new one.")
     
     # Define the schema for the collection
     fields = [
-        pymilvus.FieldSchema(name="embedding", dtype=pymilvus.DataType.FLOAT_VECTOR, dim=VECTOR_DIM),
-        pymilvus.FieldSchema(name="file", dtype=pymilvus.DataType.STRING),
-        pymilvus.FieldSchema(name="page", dtype=pymilvus.DataType.STRING),
-        pymilvus.FieldSchema(name="chunk", dtype=pymilvus.DataType.STRING),
+        FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=VECTOR_DIM),
+        FieldSchema(name="file", dtype=DataType.STRING),
+        FieldSchema(name="page", dtype=DataType.STRING),
+        FieldSchema(name="chunk", dtype=DataType.STRING),
     ]
     
+    # Create the collection schema
+    collection_schema = CollectionSchema(fields, description="Embedding collection")
     # Create the collection
-    collection_schema = pymilvus.CollectionSchema(fields, description="Embedding collection")
-    collection = pymilvus.Collection(name=COLLECTION_NAME, schema=collection_schema)
+    collection = Collection(name=COLLECTION_NAME, schema=collection_schema)
     print("Milvus collection created successfully.")
 
 # Generate an embedding using nomic-embed-text
@@ -50,7 +54,8 @@ def store_embedding(file: str, page: str, chunk: str, embedding: list):
     ]
     
     # Insert the data into the Milvus collection
-    client.insert(collection_name=COLLECTION_NAME, records=entities)
+    collection = Collection(COLLECTION_NAME)  # Use the collection object
+    collection.insert(entities)
     print(f"Stored embedding for: {chunk}")
 
 # Extract the text from a PDF by page
@@ -134,9 +139,9 @@ def query_milvus(query_text: str):
     embedding = get_embedding(query_text)
     
     # Perform similarity search in Milvus
-    search_params = {"nprobe": 16}  # Number of probes to search for (higher is more accurate but slower)
-    results = client.search(
-        collection_name=COLLECTION_NAME,
+    search_params = {"nprobe": 16} 
+    collection = Collection(COLLECTION_NAME) 
+    results = collection.search(
         query_records=[np.array(embedding, dtype=np.float32)],
         top_k=5,  # Top 5 most similar results
         params=search_params
