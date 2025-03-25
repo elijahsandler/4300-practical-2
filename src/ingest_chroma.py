@@ -130,7 +130,7 @@ def query_chroma(query_text: str):
         query_embeddings=[embedding],
         n_results=5
     )
-
+    
     for i, result in enumerate(results['documents']):
         print(f"Document {i+1}: {result} with distance: {results['distances'][i]}\n\n")
     
