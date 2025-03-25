@@ -12,7 +12,7 @@ import ollama
 # Initialize models
 sentence_transformers_all_minilm = SentenceTransformer("all-MiniLM-L6-v2")
 sentence_transformers_all_mpnet = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
-client = chromadb.Client()
+client = chromadb.PersistentClient(path="./chroma_db")
 
 VECTOR_DIM = 768
 COLLECTION_NAME = "embedding_collection"
@@ -41,15 +41,15 @@ def search_embeddings(query, top_k=3):
         #     .return_fields("id", "file", "page", "chunk", "vector_distance")
         #     .dialect(2)
         # )
-        query_embedding = get_embedding(query)
+        # query_embedding = get_embedding(query)
         
-        embedding = get_embedding(query_embedding)
+        embedding = get_embedding(query)
         collection = client.get_collection(COLLECTION_NAME)
         
         # Perform the search
         results = collection.query(
             query_embeddings=[embedding],
-            n_results=5
+            n_results=top_k
         )
 
         for i, result in enumerate(results['documents']):
@@ -174,7 +174,7 @@ def interactive_search():
             print(query)
 
             print("\n--- Response ---")
-            print(response)
+            # print(response)
             print(response.strip(), '\n')
 
 

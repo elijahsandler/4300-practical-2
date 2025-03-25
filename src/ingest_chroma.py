@@ -9,7 +9,7 @@ import ollama
 
 
 # Initialize Chroma client with in-memory setup
-client = chromadb.Client()
+client = chromadb.PersistentClient(path="./chroma_db")
 
 VECTOR_DIM = 768
 COLLECTION_NAME = "embedding_collection"
