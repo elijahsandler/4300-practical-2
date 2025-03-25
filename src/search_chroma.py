@@ -32,17 +32,6 @@ def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
 def search_embeddings(query, top_k=3):
     try:
         # Construct the vector similarity search query
-        # Use a more standard RediSearch vector search syntax
-        # q = Query("*").sort_by("embedding", query_vector)
-
-        # q = (
-        #     Query("*=>[KNN 5 @embedding $vec AS vector_distance]")
-        #     .sort_by("vector_distance")
-        #     .return_fields("id", "file", "page", "chunk", "vector_distance")
-        #     .dialect(2)
-        # )
-        # query_embedding = get_embedding(query)
-        
         embedding = get_embedding(query)
         collection = client.get_collection(COLLECTION_NAME)
         

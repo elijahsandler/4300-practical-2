@@ -6,6 +6,7 @@ import json
 from time import time
 import weaviate.classes.config as wvcc
 import ollama
+from weaviate.classes.query import MetadataQuery
 
 
 # Initialize models
@@ -34,21 +35,12 @@ def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
 def search_embeddings(query, top_k=3):
     try:
         # Construct the vector similarity search query
-        # Use a more standard RediSearch vector search syntax
-        # q = Query("*").sort_by("embedding", query_vector)
-
-        # q = (
-        #     Query("*=>[KNN 5 @embedding $vec AS vector_distance]")
-        #     .sort_by("vector_distance")
-        #     .return_fields("id", "file", "page", "chunk", "vector_distance")
-        #     .dialect(2)
-        # )
-        # query_embedding = get_embedding(query)
-        
         embedding = get_embedding(query)
         collection = client.collections.get(COLLECTION_NAME)
         # Perform a query to Weaviate using the embedding
-        results = collection.query.near_vector(near_vector=embedding,limit=top_k)
+        results = collection.query.near_vector(near_vector=embedding,
+                                          limit=5, 
+                                          return_metadata=MetadataQuery(distance=True))
 
         for i, obj in enumerate(results.objects):
             # Accessing the properties of each object
@@ -57,7 +49,7 @@ def search_embeddings(query, top_k=3):
             page = obj.properties['page']
             
             # Getting the distance for the current object
-            distance = 0 #results.distances[0][i]  # Access the corresponding distance
+            distance = obj.metadata.distance 
 
             # Printing the document details with the distance
             print(f"Document {i+1}: {file} - Page {page} - Chunk: {chunk} with distance: {distance}\n\n")
@@ -68,7 +60,7 @@ def search_embeddings(query, top_k=3):
             "file": obj.properties['file'],
             "page": obj.properties['page'],
             "chunk": obj.properties['chunk'],
-            "similarity": 0  # You can add similarity logic if needed
+            "similarity": obj.metadata.distance  # You can add similarity logic if needed
             }
         for obj in results.objects][:top_k]
 
