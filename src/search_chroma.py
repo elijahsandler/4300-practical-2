@@ -1,19 +1,21 @@
-import redis
-import json
-import os
-import numpy as np
 from sentence_transformers import SentenceTransformer
+import chromadb
+import numpy as np
+import os
+import pymupdf
+import json
+from time import time
+from chromadb.config import Settings
 import ollama
-from redis.commands.search.query import Query
-from redis.commands.search.field import VectorField, TextField
 
 
 # Initialize models
 sentence_transformers_all_minilm = SentenceTransformer("all-MiniLM-L6-v2")
-redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
+sentence_transformers_all_mpnet = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
+client = chromadb.Client()
 
 VECTOR_DIM = 768
-INDEX_NAME = "embedding_index"
+COLLECTION_NAME = "embedding_collection"
 DOC_PREFIX = "doc:"
 DISTANCE_METRIC = "COSINE"
 
@@ -23,48 +25,50 @@ DISTANCE_METRIC = "COSINE"
 
 
 def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-
     response = ollama.embeddings(model=model, prompt=text)
-    return response["embedding"]
-
-    sentence_transformers_all_minilm = SentenceTransformer("all-MiniLM-L6-v2")
     return response["embedding"]
 
 
 def search_embeddings(query, top_k=3):
-
-    query_embedding = get_embedding(query)
-
-    # Convert embedding to bytes for Redis search
-    query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
-
     try:
         # Construct the vector similarity search query
         # Use a more standard RediSearch vector search syntax
         # q = Query("*").sort_by("embedding", query_vector)
 
-        q = (
-            Query("*=>[KNN 5 @embedding $vec AS vector_distance]")
-            .sort_by("vector_distance")
-            .return_fields("id", "file", "page", "chunk", "vector_distance")
-            .dialect(2)
+        # q = (
+        #     Query("*=>[KNN 5 @embedding $vec AS vector_distance]")
+        #     .sort_by("vector_distance")
+        #     .return_fields("id", "file", "page", "chunk", "vector_distance")
+        #     .dialect(2)
+        # )
+        query_embedding = get_embedding(query)
+        
+        embedding = get_embedding(query_embedding)
+        collection = client.get_collection(COLLECTION_NAME)
+        
+        # Perform the search
+        results = collection.query(
+            query_embeddings=[embedding],
+            n_results=5
         )
 
-        # Perform the search
-        results = redis_client.ft(INDEX_NAME).search(
-            q, query_params={"vec": query_vector}
-        )
+        for i, result in enumerate(results['documents']):
+            print(f"Document {i+1}: {result} with distance: {results['distances'][i]}\n\n")
+    
 
         # Transform results into the expected format
-        top_results = [
-            {
-                "file": result.file,
-                "page": result.page,
-                "chunk": result.chunk,
-                "similarity": result.vector_distance,
-            }
-            for result in results.docs
-        ][:top_k]
+        top_results = [{
+            "file": metadata['file'],
+            "page": metadata['page'],
+            "chunk": doc_chunk,
+            "similarity": distance
+                }
+            for metadata, 
+                doc_chunk, 
+                distance in zip(results['metadatas'][0], 
+                                results['documents'][0], 
+                                results['distances'][0])
+                ][:top_k]
 
         # Print results for debugging
         for result in top_results:
@@ -79,7 +83,7 @@ def search_embeddings(query, top_k=3):
         return []
 
 
-def generate_rag_response(query, context_results, embedding_model='sentence_transformers_all_mpnet'):
+def generate_rag_response(query, context_results, embedding_model='ollama'):
 
     # Prepare context string
     context_str = "\n".join(
@@ -104,9 +108,22 @@ Query: {query}
 
 Answer:"""
 
+    # Generate response using Ollama
+    if embedding_model == 'ollama':
+        ollama_response = ollama.chat(
+            model="mistral:latest", messages=[{"role": "user", "content": prompt}]
+        )
+        return ollama_response["message"]["content"]
+
     # Generate response using sentence_transformers_all_minilm (sentence-transformers/all-MiniLM-L6-v2)
-    sentence_transformers_all_minilm_response = sentence_transformers_all_minilm.encode(query) # text
-    return sentence_transformers_all_minilm_response
+    elif embedding_model == 'minilm':
+        minilm_response = sentence_transformers_all_minilm.encode(query) # text
+        return minilm_response
+
+    # Generate response using sentence_transformers_all_mpnet (sentence-transformers/all-mpnet-base-v2)
+    elif embedding_model == 'mpnet':
+        mpnet_response = sentence_transformers_all_mpnet.encode(prompt) # sentence
+        return mpnet_response
 
 def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -118,6 +135,23 @@ def interactive_search():
     print("🔍 RAG Search Interface")
     print("Type 'exit' to quit")
     print("Type 'clear' to clear terminal")
+    while True:
+        print("Pick a model out of... \n",
+            "0: nomic-embed-text \n",
+            "1: SentenceTransformer all-MiniLM-L6-v2 \n",
+            "2: SentenceTransformer all-mpnet-base-v2")
+        model_num = int(input("Pick model number: "))
+        if model_num in (0, 1, 2):
+            break
+        else:
+            "Please pick only 0, 1 or 2"
+            
+    if model_num == 0:
+        embedding_model = "ollama"
+    elif model_num == 1:
+        embedding_model = "minilm"
+    elif model_num ==2:
+        embedding_model = "mpnet"
 
     while True:
         query = input("\nEnter your search query: ")
@@ -134,12 +168,13 @@ def interactive_search():
             context_results = search_embeddings(query)
 
             # Generate RAG response
-            response = generate_rag_response(query, context_results)
+            response = generate_rag_response(query, context_results, embedding_model)
 
             print("\n--- Query ---")
             print(query)
 
             print("\n--- Response ---")
+            print(response)
             print(response.strip(), '\n')
 
 

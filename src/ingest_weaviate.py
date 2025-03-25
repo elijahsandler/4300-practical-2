@@ -1,24 +1,42 @@
-import chromadb
+import weaviate
 import numpy as np
 import os
 import pymupdf
 import json
 from time import time
-from chromadb.config import Settings
 import ollama
+import weaviate.classes.config as wvcc
 
 
-# Initialize Chroma client with in-memory setup
-client = chromadb.Client()
+client = weaviate.connect_to_local(
+    port=8080,
+    grpc_port=50051
+    )
 
 VECTOR_DIM = 768
-COLLECTION_NAME = "embedding_collection"
-DISTANCE_METRIC = "cosine"
+COLLECTION_NAME = "EmbeddingCollection"
 
-# Create a Chroma collection to store embeddings
-def create_chroma_collection():
-    collection = client.create_collection(COLLECTION_NAME)
-    print("Chroma collection created successfully.")
+def get_weaviate_collection():
+    try:        
+        collection = client.collections.get(COLLECTION_NAME)        
+        print("Using existing collection")   
+    except:     
+        collection = client.collections.create(
+        name=COLLECTION_NAME,
+        vectorizer_config=wvcc.Configure.Vectorizer.text2vec_cohere(),
+        generative_config=wvcc.Configure.Generative.cohere(),
+        properties=[
+            wvcc.Property(
+                name="title",
+                data_type=wvcc.DataType.TEXT
+            )
+        ]
+    )
+
+    # finally:
+    #     client.close()
+
+    print("Weaviate class created successfully.")
 
 
 # Generate an embedding using nomic-embed-text
@@ -27,18 +45,25 @@ def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
     return response["embedding"]
 
 
-# Store the embedding in Chroma
+# Store the embedding in Weaviate
 def store_embedding(file: str, page: str, chunk: str, embedding: list):
-    collection = client.get_collection(COLLECTION_NAME)
     doc_id = f"{file}_page_{page}_chunk_{chunk}"
-    metadata = {"file": file, "page": page, "chunk": chunk}
-    collection.add(
-        documents=[chunk],
-        metadatas=[metadata],
-        embeddings=[embedding],
-        ids=[doc_id],
-    )
-    # print(f"Stored embedding for: {chunk}")
+    metadata = {
+        "uuid": doc_id,
+        "file": file,
+        "page": page,
+        "chunk": chunk
+    }
+
+    # Store the data in Weaviate
+    client.collections.get(COLLECTION_NAME).data.insert(metadata, vector=embedding)
+    # client.add_data_object.create(
+    #     data_object=metadata,
+    #     class_name=COLLECTION_NAME,
+    #     vector=embedding,
+    #     uuid=doc_id
+    # )
+    print(f"Stored embedding for: {chunk}")
 
 
 # Extract the text from a PDF by page
@@ -122,21 +147,27 @@ def process_ipynbs(data_dir):
             print(f" -----> Processed {file_name}")
 
 
-# Query Chroma for similar documents
-def query_chroma(query_text: str):
+# Query Weaviate for similar documents
+def query_weaviate(query_text: str):
     embedding = get_embedding(query_text)
-    collection = client.get_collection(COLLECTION_NAME)
-    results = collection.query(
-        query_embeddings=[embedding],
-        n_results=5
-    )
-    
-    for i, result in enumerate(results['documents']):
-        print(f"Document {i+1}: {result} with distance: {results['distances'][i]}\n\n")
-    
+    collection = client.collections.get(COLLECTION_NAME)
+    # Perform a query to Weaviate using the embedding
+    result = collection.query.near_vector(near_vector=embedding,limit=5)
+
+    print(result)
+
+    # for i, res in enumerate(result["data"]["Get"]):
+    #     print(f"Document {i+1}: {res['file']} (Page: {res['page']}) - Chunk: {res['chunk']}")
+
+    for i, obj in enumerate(result.objects):
+        # Access the 'properties' dictionary of each Object
+        properties = obj.properties
+        print(f"Document {i+1}: {properties['file']} (Page: {properties['page']}) - Chunk: {properties['chunk']}")
+
+
 
 def main():
-    create_chroma_collection()
+    get_weaviate_collection()
 
     s = time()
     process_pdfs("./data/")
@@ -145,8 +176,9 @@ def main():
     t = time() - s
     print(f"\n---Processed documents in {t} seconds---\n")
 
-    query_chroma("What is the capital of France?")
-
+    query_weaviate("What is the capital of France?")
+    
+    client.close()
 
 if __name__ == "__main__":
     main()
