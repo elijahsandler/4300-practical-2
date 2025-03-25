@@ -17,7 +17,10 @@ VECTOR_DIM = 768
 COLLECTION_NAME = "EmbeddingCollection"
 
 def get_weaviate_collection():
-    try:
+    try:        
+        collection = client.collections.get(COLLECTION_NAME)        
+        print("Using existing collection")   
+    except:     
         collection = client.collections.create(
         name=COLLECTION_NAME,
         vectorizer_config=wvcc.Configure.Vectorizer.text2vec_cohere(),
@@ -30,8 +33,8 @@ def get_weaviate_collection():
         ]
     )
 
-    finally:
-        client.close()
+    # finally:
+    #     client.close()
 
     print("Weaviate class created successfully.")
 
@@ -46,18 +49,20 @@ def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
 def store_embedding(file: str, page: str, chunk: str, embedding: list):
     doc_id = f"{file}_page_{page}_chunk_{chunk}"
     metadata = {
+        "uuid": doc_id,
         "file": file,
         "page": page,
         "chunk": chunk
     }
-    
+
     # Store the data in Weaviate
-    client.add_data_object.create(
-        data_object=metadata,
-        class_name=COLLECTION_NAME,
-        vector=embedding,
-        uuid=doc_id
-    )
+    client.collections.get(COLLECTION_NAME).data.insert(metadata, vector=embedding)
+    # client.add_data_object.create(
+    #     data_object=metadata,
+    #     class_name=COLLECTION_NAME,
+    #     vector=embedding,
+    #     uuid=doc_id
+    # )
     print(f"Stored embedding for: {chunk}")
 
 
@@ -145,15 +150,20 @@ def process_ipynbs(data_dir):
 # Query Weaviate for similar documents
 def query_weaviate(query_text: str):
     embedding = get_embedding(query_text)
-    
+    collection = client.collections.get(COLLECTION_NAME)
     # Perform a query to Weaviate using the embedding
-    result = client.query.get(COLLECTION_NAME, ["file", "page", "chunk"]).with_near_vector(
-    {"vector": embedding, "certainty": 0.7}
-).with_limit(5).do()
+    result = collection.query.near_vector(near_vector=embedding,limit=5)
 
+    print(result)
 
-    for i, res in enumerate(result["data"]["Get"][COLLECTION_NAME]):
-        print(f"Document {i+1}: {res['file']} (Page: {res['page']}) - Chunk: {res['chunk']}")
+    # for i, res in enumerate(result["data"]["Get"]):
+    #     print(f"Document {i+1}: {res['file']} (Page: {res['page']}) - Chunk: {res['chunk']}")
+
+    for i, obj in enumerate(result.objects):
+        # Access the 'properties' dictionary of each Object
+        properties = obj.properties
+        print(f"Document {i+1}: {properties['file']} (Page: {properties['page']}) - Chunk: {properties['chunk']}")
+
 
 
 def main():
@@ -167,7 +177,8 @@ def main():
     print(f"\n---Processed documents in {t} seconds---\n")
 
     query_weaviate("What is the capital of France?")
-
+    
+    client.close()
 
 if __name__ == "__main__":
     main()
