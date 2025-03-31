@@ -9,8 +9,8 @@ from redis.commands.search.field import VectorField, TextField
 
 
 # Initialize models
-sentence_transformers_all_minilm = SentenceTransformer("all-MiniLM-L6-v2")
-sentence_transformers_all_mpnet = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
+minilm_model = SentenceTransformer("all-MiniLM-L6-v2")
+mxbai_model = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1") 
 redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
 
 VECTOR_DIM = 768
@@ -23,57 +23,87 @@ DISTANCE_METRIC = "COSINE"
 #     return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
 
 
-def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-    response = ollama.embeddings(model=model, prompt=text)
-    return response["embedding"]
+def get_embedding(text: str, embedding_model: str) -> list:
+    if embedding_model == "nomic":
+        response = ollama.embeddings(model="nomic-embed-text", prompt=text)
+        return response["embedding"]
+    elif embedding_model == "minilm":
+        return minilm_model.encode(text).tolist()
+    elif embedding_model == "mxbai-embed-large":
+        return mxbai_model.encode(text).tolist()
+    else:
+        raise ValueError(f"Unknown model: {embedding_model}")
 
 
-def search_embeddings(query, top_k=3):
-
-    query_embedding = get_embedding(query)
-
-    # Convert embedding to bytes for Redis search
+def search_embeddings(query, embedding_model, top_k=3):
+    query_embedding = get_embedding(query, embedding_model)
     query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
 
-    try:
-        # Construct the vector similarity search query
-        # Use a more standard RediSearch vector search syntax
-        # q = Query("*").sort_by("embedding", query_vector)
+    # Search only embeddings from the selected model
+    q = (
+        Query(f"@embedding_model:{embedding_model}=>[KNN {top_k} @embedding $vec AS vector_distance]")
+        .sort_by("vector_distance")
+        .return_fields("file", "page", "chunk", "vector_distance")
+        .dialect(2)
+    )
 
-        q = (
-            Query("*=>[KNN 5 @embedding $vec AS vector_distance]")
-            .sort_by("vector_distance")
-            .return_fields("id", "file", "page", "chunk", "vector_distance")
-            .dialect(2)
-        )
+    results = redis_client.ft(INDEX_NAME).search(q, query_params={"vec": query_vector})
+    return [
+        {
+            "file": doc.file,
+            "page": doc.page,
+            "chunk": doc.chunk,
+            "similarity": doc.vector_distance,
+        }
+        for doc in results.docs
+    ]
 
-        # Perform the search
-        results = redis_client.ft(INDEX_NAME).search(
-            q, query_params={"vec": query_vector}
-        )
+# def search_embeddings(query, top_k=3):
 
-        # Transform results into the expected format
-        top_results = [
-            {
-                "file": result.file,
-                "page": result.page,
-                "chunk": result.chunk,
-                "similarity": result.vector_distance,
-            }
-            for result in results.docs
-        ][:top_k]
+#     query_embedding = get_embedding(query)
 
-        # Print results for debugging
-        for result in top_results:
-            print(
-                f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}"
-            )
+#     # Convert embedding to bytes for Redis search
+#     query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
 
-        return top_results
+#     try:
+#         # Construct the vector similarity search query
+#         # Use a more standard RediSearch vector search syntax
+#         # q = Query("*").sort_by("embedding", query_vector)
 
-    except Exception as e:
-        print(f"Search error: {e}")
-        return []
+#         q = (
+#             Query("*=>[KNN 5 @embedding $vec AS vector_distance]")
+#             .sort_by("vector_distance")
+#             .return_fields("id", "file", "page", "chunk", "vector_distance")
+#             .dialect(2)
+#         )
+
+#         # Perform the search
+#         results = redis_client.ft(INDEX_NAME).search(
+#             q, query_params={"vec": query_vector}
+#         )
+
+#         # Transform results into the expected format
+#         top_results = [
+#             {
+#                 "file": result.file,
+#                 "page": result.page,
+#                 "chunk": result.chunk,
+#                 "similarity": result.vector_distance,
+#             }
+#             for result in results.docs
+#         ][:top_k]
+
+#         # Print results for debugging
+#         for result in top_results:
+#             print(
+#                 f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}"
+#             )
+
+#         return top_results
+
+#     except Exception as e:
+#         print(f"Search error: {e}")
+#         return []
 
 
 def generate_rag_response(query, context_results, embedding_model='ollama'):
@@ -102,21 +132,11 @@ Query: {query}
 Answer:"""
 
     # Generate response using Ollama
-    if embedding_model == 'ollama':
-        ollama_response = ollama.chat(
-            model="mistral:latest", messages=[{"role": "user", "content": prompt}]
-        )
-        return ollama_response["message"]["content"]
+    ollama_response = ollama.chat(
+        model="mistral:latest", messages=[{"role": "user", "content": prompt}]
+    )
+    return ollama_response["message"]["content"]
 
-    # Generate response using sentence_transformers_all_minilm (sentence-transformers/all-MiniLM-L6-v2)
-    elif embedding_model == 'minilm':
-        minilm_response = sentence_transformers_all_minilm.encode(query) # text
-        return minilm_response
-
-    # Generate response using sentence_transformers_all_mpnet (sentence-transformers/all-mpnet-base-v2)
-    elif embedding_model == 'mpnet':
-        mpnet_response = sentence_transformers_all_mpnet.encode(prompt) # sentence
-        return mpnet_response
 
 def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -124,51 +144,23 @@ def clear_terminal():
 clear_terminal()
 
 def interactive_search():
-    """Interactive search interface."""
-    print("🔍 RAG Search Interface")
-    print("Type 'exit' to quit")
-    print("Type 'clear' to clear terminal")
-    while True:
-        print("Pick a model out of... \n",
-            "0: nomic-embed-text \n",
-            "1: SentenceTransformer all-MiniLM-L6-v2 \n",
-            "2: SentenceTransformer all-mpnet-base-v2")
-        model_num = int(input("Pick model number: "))
-        if model_num in (0, 1, 2):
-            break
-        else:
-            "Please pick only 0, 1 or 2"
-            
-    if model_num == 0:
-        embedding_model = "ollama"
-    elif model_num == 1:
-        embedding_model = "minilm"
-    elif model_num ==2:
-        embedding_model = "mpnet"
+    print("🔍 Choose Embedding Model:")
+    print("1. nomic-embed-text (Ollama)")
+    print("2. all-MiniLM-L6-v2 (SentenceTransformers)")
+    print("3. mxbai-embed-large")
+
+    choice = input("Enter model number (1/2/3): ")
+    model_map = {"1": "nomic", "2": "minilm", "3": "mxbai-embed-large"}
+    embedding_model = model_map.get(choice, "nomic")  # Default to nomic
 
     while True:
-        query = input("\nEnter your search query: ")
-
+        query = input("\nEnter query (or 'exit'): ")
         if query.lower() == "exit":
             break
-        elif query.lower() == 'clear':
-            clear_terminal()
-            print("🔍 RAG Search Interface")
-            print("Type 'exit' to quit")
-            print("Type 'clear' to clear terminal")
-        else: 
-            # Search for relevant embeddings
-            context_results = search_embeddings(query)
 
-            # Generate RAG response
-            response = generate_rag_response(query, context_results, embedding_model)
-
-            print("\n--- Query ---")
-            print(query)
-
-            print("\n--- Response ---")
-            print(response)
-            print(response.strip(), '\n')
+        results = search_embeddings(query, embedding_model)
+        response = generate_rag_response(query, results)
+        print(f"\n🤖 Response ({embedding_model}):\n{response}")
 
 
 # def store_embedding(file, page, chunk, embedding):
