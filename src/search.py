@@ -58,54 +58,6 @@ def search_embeddings(query, embedding_model, top_k=3):
         for doc in results.docs
     ]
 
-# def search_embeddings(query, top_k=3):
-
-#     query_embedding = get_embedding(query)
-
-#     # Convert embedding to bytes for Redis search
-#     query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
-
-#     try:
-#         # Construct the vector similarity search query
-#         # Use a more standard RediSearch vector search syntax
-#         # q = Query("*").sort_by("embedding", query_vector)
-
-#         q = (
-#             Query("*=>[KNN 5 @embedding $vec AS vector_distance]")
-#             .sort_by("vector_distance")
-#             .return_fields("id", "file", "page", "chunk", "vector_distance")
-#             .dialect(2)
-#         )
-
-#         # Perform the search
-#         results = redis_client.ft(INDEX_NAME).search(
-#             q, query_params={"vec": query_vector}
-#         )
-
-#         # Transform results into the expected format
-#         top_results = [
-#             {
-#                 "file": result.file,
-#                 "page": result.page,
-#                 "chunk": result.chunk,
-#                 "similarity": result.vector_distance,
-#             }
-#             for result in results.docs
-#         ][:top_k]
-
-#         # Print results for debugging
-#         for result in top_results:
-#             print(
-#                 f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}"
-#             )
-
-#         return top_results
-
-#     except Exception as e:
-#         print(f"Search error: {e}")
-#         return []
-
-
 def generate_rag_response(query, context_results, embedding_model='ollama'):
 
     # Prepare context string
@@ -161,28 +113,6 @@ def interactive_search():
         results = search_embeddings(query, embedding_model)
         response = generate_rag_response(query, results)
         print(f"\n🤖 Response ({embedding_model}):\n{response}")
-
-
-# def store_embedding(file, page, chunk, embedding):
-#     """
-#     Store an embedding in Redis using a hash with vector field.
-
-#     Args:
-#         file (str): Source file name
-#         page (str): Page number
-#         chunk (str): Chunk index
-#         embedding (list): Embedding vector
-#     """
-#     key = f"{file}_page_{page}_chunk_{chunk}"
-#     redis_client.hset(
-#         key,
-#         mapping={
-#             "embedding": np.array(embedding, dtype=np.float32).tobytes(),
-#             "file": file,
-#             "page": page,
-#             "chunk": chunk,
-#         },
-#     )
 
 
 if __name__ == "__main__":
