@@ -6,6 +6,7 @@ import json
 from time import time
 import ollama
 import weaviate.classes.config as wvcc
+from weaviate.classes.query import MetadataQuery
 
 
 client = weaviate.connect_to_local(
@@ -33,8 +34,6 @@ def get_weaviate_collection():
         ]
     )
 
-    # finally:
-    #     client.close()
 
     print("Weaviate class created successfully.")
 
@@ -57,12 +56,6 @@ def store_embedding(file: str, page: str, chunk: str, embedding: list):
 
     # Store the data in Weaviate
     client.collections.get(COLLECTION_NAME).data.insert(metadata, vector=embedding)
-    # client.add_data_object.create(
-    #     data_object=metadata,
-    #     class_name=COLLECTION_NAME,
-    #     vector=embedding,
-    #     uuid=doc_id
-    # )
     print(f"Stored embedding for: {chunk}")
 
 
@@ -152,12 +145,10 @@ def query_weaviate(query_text: str):
     embedding = get_embedding(query_text)
     collection = client.collections.get(COLLECTION_NAME)
     # Perform a query to Weaviate using the embedding
-    result = collection.query.near_vector(near_vector=embedding,limit=5)
+    result = collection.query.near_vector(near_vector=embedding,
+                                          limit=5, 
+                                          return_metadata=MetadataQuery(distance=True))
 
-    print(result)
-
-    # for i, res in enumerate(result["data"]["Get"]):
-    #     print(f"Document {i+1}: {res['file']} (Page: {res['page']}) - Chunk: {res['chunk']}")
 
     for i, obj in enumerate(result.objects):
         # Access the 'properties' dictionary of each Object

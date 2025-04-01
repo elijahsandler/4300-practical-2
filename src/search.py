@@ -1,83 +1,95 @@
 import redis
-import json
 import os
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import ollama
 from redis.commands.search.query import Query
-from redis.commands.search.field import VectorField, TextField
-
+import csv
+from datetime import datetime
+from time import time
 
 # Initialize models
-sentence_transformers_all_minilm = SentenceTransformer("all-MiniLM-L6-v2")
-sentence_transformers_all_mpnet = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
+minilm_model = SentenceTransformer("all-MiniLM-L6-v2")
+mxbai_model = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1") 
 redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
 
-VECTOR_DIM = 768
+# Model configurations
+MODEL_CONFIG = {
+    "nomic": {
+        "dim": 768,
+        "get_embedding": lambda text: ollama.embeddings(model="nomic-embed-text", prompt=text)["embedding"]
+    },
+    "minilm": {
+        "dim": 384,
+        "get_embedding": lambda text: minilm_model.encode(text).tolist()
+    },
+    "mxbai": {
+        "dim": 1024,
+        "get_embedding": lambda text: mxbai_model.encode(text).tolist()
+    }
+}
+
 INDEX_NAME = "embedding_index"
 DOC_PREFIX = "doc:"
 DISTANCE_METRIC = "COSINE"
 
-# def cosine_similarity(vec1, vec2):
-#     """Calculate cosine similarity between two vectors."""
-#     return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+def log_to_csv(embedding_model, prompt, response_time, response_length):
+    """Log query details to CSV file"""
+    file_exists = os.path.isfile('data_collection.csv')
+    
+    with open('data_collection.csv', 'a', newline='') as csvfile:
+        fieldnames = ['timestamp', 'embedding', 'prompt', 'response_time_sec', 'response_length']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        
+        if not file_exists:
+            writer.writeheader()
+            
+        writer.writerow({
+            'timestamp': datetime.now().isoformat(),
+            'database': 'redis',
+            'embedding': embedding_model,
+            'prompt': prompt,
+            'response_time_sec': response_time,
+            'response_length': response_length
+        })
 
-
-def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-    response = ollama.embeddings(model=model, prompt=text)
-    return response["embedding"]
-
-
-def search_embeddings(query, top_k=3):
-
-    query_embedding = get_embedding(query)
-
-    # Convert embedding to bytes for Redis search
-    query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
-
+def get_embedding(text: str, embedding_model: str) -> list:
     try:
-        # Construct the vector similarity search query
-        # Use a more standard RediSearch vector search syntax
-        # q = Query("*").sort_by("embedding", query_vector)
+        return MODEL_CONFIG[embedding_model]["get_embedding"](text)
+    except KeyError:
+        return ollama.embeddings(model="nomic-embed-text", prompt=text)["embedding"] # nomic-embed-text is default
+
+def search_embeddings(query, embedding_model, top_k=3):
+    try:
+        query_embedding = get_embedding(query, embedding_model)
+        query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
 
         q = (
-            Query("*=>[KNN 5 @embedding $vec AS vector_distance]")
+            Query("*=>[KNN {top_k} @embedding $vec AS vector_distance]")
             .sort_by("vector_distance")
-            .return_fields("id", "file", "page", "chunk", "vector_distance")
+            .return_fields("file", "page", "chunk", "vector_distance")
             .dialect(2)
         )
 
-        # Perform the search
         results = redis_client.ft(INDEX_NAME).search(
-            q, query_params={"vec": query_vector}
+            q, 
+            query_params={"vec": query_vector},
+            params={"top_k": top_k}
         )
-
-        # Transform results into the expected format
-        top_results = [
+        
+        return [
             {
-                "file": result.file,
-                "page": result.page,
-                "chunk": result.chunk,
-                "similarity": result.vector_distance,
+                "file": doc.file,
+                "page": doc.page,
+                "chunk": doc.chunk,
+                "similarity": doc.vector_distance,
             }
-            for result in results.docs
-        ][:top_k]
-
-        # Print results for debugging
-        for result in top_results:
-            print(
-                f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}"
-            )
-
-        return top_results
-
-    except Exception as e:
-        print(f"Search error: {e}")
+            for doc in results.docs
+        ]
+    except:
         return []
 
-
 def generate_rag_response(query, context_results, embedding_model='ollama'):
-
     # Prepare context string
     context_str = "\n".join(
         [
@@ -86,8 +98,6 @@ def generate_rag_response(query, context_results, embedding_model='ollama'):
             for result in context_results
         ]
     )
-
-    print(f"context_str: {context_str}")
 
     # Construct prompt with context
     prompt = f"""You are a helpful AI assistant. 
@@ -102,96 +112,43 @@ Query: {query}
 Answer:"""
 
     # Generate response using Ollama
-    if embedding_model == 'ollama':
-        ollama_response = ollama.chat(
-            model="mistral:latest", messages=[{"role": "user", "content": prompt}]
-        )
-        return ollama_response["message"]["content"]
-
-    # Generate response using sentence_transformers_all_minilm (sentence-transformers/all-MiniLM-L6-v2)
-    elif embedding_model == 'minilm':
-        minilm_response = sentence_transformers_all_minilm.encode(query) # text
-        return minilm_response
-
-    # Generate response using sentence_transformers_all_mpnet (sentence-transformers/all-mpnet-base-v2)
-    elif embedding_model == 'mpnet':
-        mpnet_response = sentence_transformers_all_mpnet.encode(prompt) # sentence
-        return mpnet_response
+    ollama_response = ollama.chat(
+        model="mistral:latest", messages=[{"role": "user", "content": prompt}]
+    )
+    return ollama_response["message"]["content"]
 
 def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-clear_terminal()
-
 def interactive_search():
-    """Interactive search interface."""
-    print("🔍 RAG Search Interface")
-    print("Type 'exit' to quit")
-    print("Type 'clear' to clear terminal")
-    while True:
-        print("Pick a model out of... \n",
-            "0: nomic-embed-text \n",
-            "1: SentenceTransformer all-MiniLM-L6-v2 \n",
-            "2: SentenceTransformer all-mpnet-base-v2")
-        model_num = int(input("Pick model number: "))
-        if model_num in (0, 1, 2):
-            break
-        else:
-            "Please pick only 0, 1 or 2"
-            
-    if model_num == 0:
-        embedding_model = "ollama"
-    elif model_num == 1:
-        embedding_model = "minilm"
-    elif model_num ==2:
-        embedding_model = "mpnet"
+    clear_terminal()
+    print("🔍 Choose Embedding Model:")
+    print("1. nomic-embed-text (Ollama)")
+    print("2. all-MiniLM-L6-v2 (SentenceTransformers)")
+    print("3. mxbai-embed-large")
+
+    choice = input("Enter model number (1/2/3): ")
+    model_map = {"1": "nomic", "2": "minilm", "3": "mxbai-embed-large"}
+    embedding_model = model_map.get(choice, "nomic")
 
     while True:
-        query = input("\nEnter your search query: ")
-
+        query = input("\nEnter query (or 'exit'): ")
         if query.lower() == "exit":
             break
-        elif query.lower() == 'clear':
-            clear_terminal()
-            print("🔍 RAG Search Interface")
-            print("Type 'exit' to quit")
-            print("Type 'clear' to clear terminal")
-        else: 
-            # Search for relevant embeddings
-            context_results = search_embeddings(query)
 
-            # Generate RAG response
-            response = generate_rag_response(query, context_results, embedding_model)
-
-            print("\n--- Query ---")
-            print(query)
-
-            print("\n--- Response ---")
-            print(response)
-            print(response.strip(), '\n')
-
-
-# def store_embedding(file, page, chunk, embedding):
-#     """
-#     Store an embedding in Redis using a hash with vector field.
-
-#     Args:
-#         file (str): Source file name
-#         page (str): Page number
-#         chunk (str): Chunk index
-#         embedding (list): Embedding vector
-#     """
-#     key = f"{file}_page_{page}_chunk_{chunk}"
-#     redis_client.hset(
-#         key,
-#         mapping={
-#             "embedding": np.array(embedding, dtype=np.float32).tobytes(),
-#             "file": file,
-#             "page": page,
-#             "chunk": chunk,
-#         },
-#     )
-
+        start_time = time()
+        results = search_embeddings(query, embedding_model)
+        response = generate_rag_response(query, results)
+        end_time = time()
+        
+        response_time = end_time - start_time
+        response_length = len(response)
+        
+        print(f"\n🤖 Response ({embedding_model}):\n{response}")
+        print(f"\n⏱️  Response time: {response_time:.2f} seconds")
+        print(f"📏 Response length: {response_length} characters")
+        
+        log_to_csv(embedding_model, query, response_time, response_length)
 
 if __name__ == "__main__":
     interactive_search()

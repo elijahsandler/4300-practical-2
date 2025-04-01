@@ -1,21 +1,24 @@
 from sentence_transformers import SentenceTransformer
-import chromadb
+import weaviate
 import numpy as np
 import os
-import pymupdf
 import json
 from time import time
-from chromadb.config import Settings
+import weaviate.classes.config as wvcc
 import ollama
+from weaviate.classes.query import MetadataQuery
 
 
 # Initialize models
 sentence_transformers_all_minilm = SentenceTransformer("all-MiniLM-L6-v2")
 sentence_transformers_all_mpnet = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
-client = chromadb.PersistentClient(path="./chroma_db")
+client = weaviate.connect_to_local(
+    port=8080,
+    grpc_port=50051
+    )
 
 VECTOR_DIM = 768
-COLLECTION_NAME = "embedding_collection"
+COLLECTION_NAME = "EmbeddingCollection"
 DOC_PREFIX = "doc:"
 DISTANCE_METRIC = "COSINE"
 
@@ -33,31 +36,33 @@ def search_embeddings(query, top_k=3):
     try:
         # Construct the vector similarity search query
         embedding = get_embedding(query)
-        collection = client.get_collection(COLLECTION_NAME)
-        
-        # Perform the search
-        results = collection.query(
-            query_embeddings=[embedding],
-            n_results=top_k
-        )
+        collection = client.collections.get(COLLECTION_NAME)
+        # Perform a query to Weaviate using the embedding
+        results = collection.query.near_vector(near_vector=embedding,
+                                          limit=5, 
+                                          return_metadata=MetadataQuery(distance=True))
 
-        for i, result in enumerate(results['documents']):
-            print(f"Document {i+1}: {result} with distance: {results['distances'][i]}\n\n")
+        for i, obj in enumerate(results.objects):
+            # Accessing the properties of each object
+            file = obj.properties['file']
+            chunk = obj.properties['chunk']
+            page = obj.properties['page']
+            
+            # Getting the distance for the current object
+            distance = obj.metadata.distance 
+
+            # Printing the document details with the distance
+            print(f"Document {i+1}: {file} - Page {page} - Chunk: {chunk} with distance: {distance}\n\n")
     
 
-        # Transform results into the expected format
+        # Transform results into the expected format 
         top_results = [{
-            "file": metadata['file'],
-            "page": metadata['page'],
-            "chunk": doc_chunk,
-            "similarity": distance
-                }
-            for metadata, 
-                doc_chunk, 
-                distance in zip(results['metadatas'][0], 
-                                results['documents'][0], 
-                                results['distances'][0])
-                ][:top_k]
+            "file": obj.properties['file'],
+            "page": obj.properties['page'],
+            "chunk": obj.properties['chunk'],
+            "similarity": obj.metadata.distance  # You can add similarity logic if needed
+            }
+        for obj in results.objects][:top_k]
 
         # Print results for debugging
         for result in top_results:
