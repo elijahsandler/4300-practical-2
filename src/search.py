@@ -18,22 +18,23 @@ INDEX_NAME = "embedding_index"
 DOC_PREFIX = "doc:"
 DISTANCE_METRIC = "COSINE"
 
-# def cosine_similarity(vec1, vec2):
-#     """Calculate cosine similarity between two vectors."""
-#     return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+def cosine_similarity(vec1, vec2):
+    """Calculate cosine similarity between two vectors."""
+    return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
 
 
 def get_embedding(text: str, embedding_model: str) -> list:
-    if embedding_model == "nomic":
+    try:
+        if embedding_model == "nomic":
+            response = ollama.embeddings(model="nomic-embed-text", prompt=text)
+            return response["embedding"]
+        elif embedding_model == "minilm":
+            return minilm_model.encode(text).tolist()
+        elif embedding_model == "mxbai-embed-large":
+            return mxbai_model.encode(text).tolist()
+    except: # nomic-embed-text as default
         response = ollama.embeddings(model="nomic-embed-text", prompt=text)
         return response["embedding"]
-    elif embedding_model == "minilm":
-        return minilm_model.encode(text).tolist()
-    elif embedding_model == "mxbai-embed-large":
-        return mxbai_model.encode(text).tolist()
-    else:
-        raise ValueError(f"Unknown model: {embedding_model}")
-
 
 def search_embeddings(query, embedding_model, top_k=3):
     query_embedding = get_embedding(query, embedding_model)
