@@ -4,3 +4,4 @@ redis
 numpy
 sentence_transformers
 chromadb
+weaviate
