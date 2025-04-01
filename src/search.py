@@ -4,7 +4,9 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 import ollama
 from redis.commands.search.query import Query
-
+import csv
+from datetime import datetime
+from time import time
 
 # Initialize models
 minilm_model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -31,10 +33,25 @@ INDEX_NAME = "embedding_index"
 DOC_PREFIX = "doc:"
 DISTANCE_METRIC = "COSINE"
 
-def cosine_similarity(vec1, vec2):
-    """Calculate cosine similarity between two vectors."""
-    return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
-
+def log_to_csv(embedding_model, prompt, response_time, response_length):
+    """Log query details to CSV file"""
+    file_exists = os.path.isfile('data_collection.csv')
+    
+    with open('data_collection.csv', 'a', newline='') as csvfile:
+        fieldnames = ['timestamp', 'embedding', 'prompt', 'response_time_sec', 'response_length']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        
+        if not file_exists:
+            writer.writeheader()
+            
+        writer.writerow({
+            'timestamp': datetime.now().isoformat(),
+            'database': 'redis',
+            'embedding': embedding_model,
+            'prompt': prompt,
+            'response_time_sec': response_time,
+            'response_length': response_length
+        })
 
 def get_embedding(text: str, embedding_model: str) -> list:
     try:
@@ -47,7 +64,6 @@ def search_embeddings(query, embedding_model, top_k=3):
         query_embedding = get_embedding(query, embedding_model)
         query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
 
-        # simplifying the query syntax
         q = (
             Query("*=>[KNN {top_k} @embedding $vec AS vector_distance]")
             .sort_by("vector_distance")
@@ -72,10 +88,8 @@ def search_embeddings(query, embedding_model, top_k=3):
         ]
     except:
         return []
-    
+
 def generate_rag_response(query, context_results, embedding_model='ollama'):
-
-
     # Prepare context string
     context_str = "\n".join(
         [
@@ -84,8 +98,6 @@ def generate_rag_response(query, context_results, embedding_model='ollama'):
             for result in context_results
         ]
     )
-
-    print(f"context_str: {context_str}")
 
     # Construct prompt with context
     prompt = f"""You are a helpful AI assistant. 
@@ -105,13 +117,11 @@ Answer:"""
     )
     return ollama_response["message"]["content"]
 
-
 def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-clear_terminal()
-
 def interactive_search():
+    clear_terminal()
     print("🔍 Choose Embedding Model:")
     print("1. nomic-embed-text (Ollama)")
     print("2. all-MiniLM-L6-v2 (SentenceTransformers)")
@@ -119,17 +129,26 @@ def interactive_search():
 
     choice = input("Enter model number (1/2/3): ")
     model_map = {"1": "nomic", "2": "minilm", "3": "mxbai-embed-large"}
-    embedding_model = model_map.get(choice, "nomic")  # Default to nomic
+    embedding_model = model_map.get(choice, "nomic")
 
     while True:
         query = input("\nEnter query (or 'exit'): ")
         if query.lower() == "exit":
             break
 
+        start_time = time()
         results = search_embeddings(query, embedding_model)
         response = generate_rag_response(query, results)
+        end_time = time()
+        
+        response_time = end_time - start_time
+        response_length = len(response)
+        
         print(f"\n🤖 Response ({embedding_model}):\n{response}")
-
+        print(f"\n⏱️  Response time: {response_time:.2f} seconds")
+        print(f"📏 Response length: {response_length} characters")
+        
+        log_to_csv(embedding_model, query, response_time, response_length)
 
 if __name__ == "__main__":
     interactive_search()
