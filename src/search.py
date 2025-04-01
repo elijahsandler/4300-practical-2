@@ -1,11 +1,9 @@
 import redis
-import json
 import os
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import ollama
 from redis.commands.search.query import Query
-from redis.commands.search.field import VectorField, TextField
 
 
 # Initialize models
@@ -13,7 +11,22 @@ minilm_model = SentenceTransformer("all-MiniLM-L6-v2")
 mxbai_model = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1") 
 redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
 
-VECTOR_DIM = 768
+# Model configurations
+MODEL_CONFIG = {
+    "nomic": {
+        "dim": 768,
+        "get_embedding": lambda text: ollama.embeddings(model="nomic-embed-text", prompt=text)["embedding"]
+    },
+    "minilm": {
+        "dim": 384,
+        "get_embedding": lambda text: minilm_model.encode(text).tolist()
+    },
+    "mxbai": {
+        "dim": 1024,
+        "get_embedding": lambda text: mxbai_model.encode(text).tolist()
+    }
+}
+
 INDEX_NAME = "embedding_index"
 DOC_PREFIX = "doc:"
 DISTANCE_METRIC = "COSINE"
@@ -25,41 +38,43 @@ def cosine_similarity(vec1, vec2):
 
 def get_embedding(text: str, embedding_model: str) -> list:
     try:
-        if embedding_model == "nomic":
-            response = ollama.embeddings(model="nomic-embed-text", prompt=text)
-            return response["embedding"]
-        elif embedding_model == "minilm":
-            return minilm_model.encode(text).tolist()
-        elif embedding_model == "mxbai-embed-large":
-            return mxbai_model.encode(text).tolist()
-    except: # nomic-embed-text as default
-        response = ollama.embeddings(model="nomic-embed-text", prompt=text)
-        return response["embedding"]
+        return MODEL_CONFIG[embedding_model]["get_embedding"](text)
+    except KeyError:
+        return ollama.embeddings(model="nomic-embed-text", prompt=text)["embedding"] # nomic-embed-text is default
 
 def search_embeddings(query, embedding_model, top_k=3):
-    query_embedding = get_embedding(query, embedding_model)
-    query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
+    try:
+        query_embedding = get_embedding(query, embedding_model)
+        query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
 
-    # Search only embeddings from the selected model
-    q = (
-        Query(f"@embedding_model:{embedding_model}=>[KNN {top_k} @embedding $vec AS vector_distance]")
-        .sort_by("vector_distance")
-        .return_fields("file", "page", "chunk", "vector_distance")
-        .dialect(2)
-    )
+        # simplifying the query syntax
+        q = (
+            Query("*=>[KNN {top_k} @embedding $vec AS vector_distance]")
+            .sort_by("vector_distance")
+            .return_fields("file", "page", "chunk", "vector_distance")
+            .dialect(2)
+        )
 
-    results = redis_client.ft(INDEX_NAME).search(q, query_params={"vec": query_vector})
-    return [
-        {
-            "file": doc.file,
-            "page": doc.page,
-            "chunk": doc.chunk,
-            "similarity": doc.vector_distance,
-        }
-        for doc in results.docs
-    ]
-
+        results = redis_client.ft(INDEX_NAME).search(
+            q, 
+            query_params={"vec": query_vector},
+            params={"top_k": top_k}
+        )
+        
+        return [
+            {
+                "file": doc.file,
+                "page": doc.page,
+                "chunk": doc.chunk,
+                "similarity": doc.vector_distance,
+            }
+            for doc in results.docs
+        ]
+    except:
+        return []
+    
 def generate_rag_response(query, context_results, embedding_model='ollama'):
+
 
     # Prepare context string
     context_str = "\n".join(
