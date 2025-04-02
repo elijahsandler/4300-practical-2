@@ -178,13 +178,5 @@ def main():
     process_ipynbs("./data/", embedding_model)
     print(f"\nProcessing completed in {time() - start_time:.2f} seconds")
     
-    while True:
-        query_text = input("\nEnter query (or 'exit' to quit): ")
-        if query_text.lower() == 'exit':
-            break
-        query_weaviate(query_text, embedding_model)
-    
-    client.close()
-
 if __name__ == "__main__":
     main()
