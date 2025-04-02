@@ -6,3 +6,4 @@ sentence_transformers
 chromadb
 weaviate
 psutil
+weaviate-client

@@ -166,9 +166,14 @@ def select_embedding_model():
     choice = input("Enter model number (1/2/3): ")
     return {"1": "nomic", "2": "minilm", "3": "mxbai"}.get(choice, "nomic")
 
-def main():
-    embedding_model = select_embedding_model()
+def main(embedding_model=None):
+    if not embedding_model:
+        embedding_model = select_embedding_model()
+    else:
+        embedding_model = {"1": "nomic", "2": "minilm", "3": "mxbai"}.get(embedding_model, "nomic")
+
     print(f"\nUsing {embedding_model} embedding model\n")
+    
     clear_weaviate_store()
     create_weaviate_collection(embedding_model)
 
@@ -178,11 +183,8 @@ def main():
     process_ipynbs("./data/", embedding_model)
     print(f"\nProcessing completed in {time() - start_time:.2f} seconds")
     
-    while True:
-        query_text = input("\nEnter query (or 'exit' to quit): ")
-        if query_text.lower() == 'exit':
-            break
-        query_weaviate(query_text, embedding_model)
+   
+    query_weaviate("What is the capital of France?", embedding_model)
     
     client.close()
 
