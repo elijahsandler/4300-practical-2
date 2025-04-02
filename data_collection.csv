@@ -9,3 +9,5 @@ timestamp,ram,database,embedding,prompt,response_time_sec,response_length,prompt
 2025-04-02T17:46:49.153761,16.0,weaviate,nomic,tell me about avl trees,21.327975273132324,1335,231
 2025-04-02T17:48:36.829274,16.0,weaviate,minilm,tell me about avl trees,21.2291100025177,1514,231
 2025-04-02T17:51:38.358285,16.0,weaviate,mxbai,tell me about avl trees,12.979315042495728,738,231
+2025-04-02T18:51:32.024098,16.0,weaviate,nomic,tell me about avl trees,13.01795506477356,664,231
+2025-04-02T19:04:17.655474,16.0,weaviate,nomic,tell me about avl trees,19.481357097625732,1197,231
