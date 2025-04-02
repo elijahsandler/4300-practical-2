@@ -7,6 +7,9 @@ from redis.commands.search.query import Query
 import csv
 from datetime import datetime
 from time import time
+import psutil
+
+
 
 # Initialize models
 # minilm_model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -38,14 +41,18 @@ def log_to_csv(embedding_model, prompt, response_time, response_length, prompt_l
     file_exists = os.path.isfile('data_collection.csv')
     
     with open('data_collection.csv', 'a', newline='') as csvfile:
-        fieldnames = ['timestamp', 'database', 'embedding', 'prompt', 'response_time_sec', 'response_length', 'prompt_length']
+        fieldnames = ['timestamp', 'ram', 'database', 'embedding', 'prompt', 'response_time_sec', 'response_length', 'prompt_length']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         
         if not file_exists:
             writer.writeheader()
+
+        mem = psutil.virtual_memory()
+        primary_memory_size = mem.total/(1024**3)
             
         writer.writerow({
             'timestamp': datetime.now().isoformat(),
+            'ram': primary_memory_size,
             'database': 'redis',
             'embedding': embedding_model,
             'prompt': prompt,

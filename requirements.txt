@@ -5,3 +5,4 @@ numpy
 sentence_transformers
 chromadb
 weaviate
+psutil
