@@ -45,7 +45,8 @@ def clear_weaviate_store():
     print("Weaviate store cleared.")
 
 def create_weaviate_collection(embedding_model):
-    collection_name = MODEL_CONFIG[embedding_model]["collection_name"]
+    # collection_name = MODEL_CONFIG[embedding_model]["model"]
+    collection_name = client.collections.get('EmbeddingCollection')
     dim = MODEL_CONFIG[embedding_model]["dim"]
     
     client.collections.create(
