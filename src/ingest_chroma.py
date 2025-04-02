@@ -175,11 +175,5 @@ def main():
     
     print(f"\nProcessing completed in {time() - start_time:.2f} seconds")
     
-    while True:
-        query_text = input("\nEnter query (or 'exit' to quit): ")
-        if query_text.lower() == 'exit':
-            break
-        query_collection(query_text, embedding_model)
-
 if __name__ == "__main__":
     main()
