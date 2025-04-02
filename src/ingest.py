@@ -10,8 +10,8 @@ from time import time
 from sentence_transformers import SentenceTransformer
 
 # Initialize models
-minilm_model = SentenceTransformer("all-MiniLM-L6-v2")
-mxbai_model = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1")
+# minilm_model = SentenceTransformer("all-MiniLM-L6-v2")
+# mxbai_model = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1")
 redis_client = redis.Redis(host="localhost", port=6380, db=0)
 
 # Model configurations
@@ -22,11 +22,11 @@ MODEL_CONFIG = {
     },
     "minilm": {
         "dim": 384,
-        "get_embedding": lambda text: minilm_model.encode(text).tolist()
+        "get_embedding": lambda text: ollama.embeddings(model="all-minilm", prompt=text)["embedding"]
     },
     "mxbai": {
         "dim": 1024,
-        "get_embedding": lambda text: mxbai_model.encode(text).tolist()
+        "get_embedding": lambda text: ollama.embeddings(model="mxbai-embed-large", prompt=text)["embedding"]
     }
 }
 

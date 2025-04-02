@@ -9,8 +9,8 @@ from datetime import datetime
 from time import time
 
 # Initialize models
-minilm_model = SentenceTransformer("all-MiniLM-L6-v2")
-mxbai_model = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1") 
+# minilm_model = SentenceTransformer("all-MiniLM-L6-v2")
+# mxbai_model = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1") 
 redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
 
 # Model configurations
@@ -21,11 +21,11 @@ MODEL_CONFIG = {
     },
     "minilm": {
         "dim": 384,
-        "get_embedding": lambda text: minilm_model.encode(text).tolist()
+        "get_embedding": lambda text: ollama.embeddings(model="all-minilm", prompt=text)["embedding"]
     },
     "mxbai": {
         "dim": 1024,
-        "get_embedding": lambda text: mxbai_model.encode(text).tolist()
+        "get_embedding": lambda text: ollama.embeddings(model="mxbai-embed-large", prompt=text)["embedding"]
     }
 }
 
@@ -33,12 +33,12 @@ INDEX_NAME = "embedding_index"
 DOC_PREFIX = "doc:"
 DISTANCE_METRIC = "COSINE"
 
-def log_to_csv(embedding_model, prompt, response_time, response_length):
+def log_to_csv(embedding_model, prompt, response_time, response_length, prompt_length):
     """Log query details to CSV file"""
     file_exists = os.path.isfile('data_collection.csv')
     
     with open('data_collection.csv', 'a', newline='') as csvfile:
-        fieldnames = ['timestamp', 'embedding', 'prompt', 'response_time_sec', 'response_length']
+        fieldnames = ['timestamp', 'database', 'embedding', 'prompt', 'response_time_sec', 'response_length', 'prompt_length']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         
         if not file_exists:
@@ -50,7 +50,8 @@ def log_to_csv(embedding_model, prompt, response_time, response_length):
             'embedding': embedding_model,
             'prompt': prompt,
             'response_time_sec': response_time,
-            'response_length': response_length
+            'response_length': response_length,
+            'prompt_length': prompt_length, 
         })
 
 def get_embedding(text: str, embedding_model: str) -> list:
@@ -61,20 +62,30 @@ def get_embedding(text: str, embedding_model: str) -> list:
 
 def search_embeddings(query, embedding_model, top_k=3):
     try:
-        query_embedding = get_embedding(query, embedding_model)
-        query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
+        # query_embedding = get_embedding(query, embedding_model)
+        # query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
 
+        # q = (
+        #     Query("*=>[KNN {top_k} @embedding $vec AS vector_distance]")
+        #     .sort_by("vector_distance")
+        #     .return_fields("file", "page", "chunk", "vector_distance")
+        #     .dialect(2)
+        # )
+
+        # results = redis_client.ft(INDEX_NAME).search(
+        #     q, 
+        #     query_params={"vec": query_vector},
+        #     # params={"top_k": top_k}
+        # )
+        embedding = get_embedding(query, embedding_model)
         q = (
-            Query("*=>[KNN {top_k} @embedding $vec AS vector_distance]")
+            Query("*=>[KNN 5 @embedding $vec AS vector_distance]")
             .sort_by("vector_distance")
             .return_fields("file", "page", "chunk", "vector_distance")
             .dialect(2)
         )
-
-        results = redis_client.ft(INDEX_NAME).search(
-            q, 
-            query_params={"vec": query_vector},
-            params={"top_k": top_k}
+        res = redis_client.ft(INDEX_NAME).search(
+            q, query_params={"vec": np.array(embedding, dtype=np.float32).tobytes()}
         )
         
         return [
@@ -84,9 +95,10 @@ def search_embeddings(query, embedding_model, top_k=3):
                 "chunk": doc.chunk,
                 "similarity": doc.vector_distance,
             }
-            for doc in results.docs
+            for doc in res.docs
         ]
-    except:
+    except Exception as e:
+        print(e)
         return []
 
 def generate_rag_response(query, context_results, embedding_model='ollama'):
@@ -110,12 +122,12 @@ Context:
 Query: {query}
 
 Answer:"""
-
+    print(prompt)
     # Generate response using Ollama
     ollama_response = ollama.chat(
         model="mistral:latest", messages=[{"role": "user", "content": prompt}]
     )
-    return ollama_response["message"]["content"]
+    return ollama_response["message"]["content"], len(prompt)
 
 def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -138,7 +150,7 @@ def interactive_search():
 
         start_time = time()
         results = search_embeddings(query, embedding_model)
-        response = generate_rag_response(query, results)
+        response, pl = generate_rag_response(query, results)
         end_time = time()
         
         response_time = end_time - start_time
@@ -148,7 +160,7 @@ def interactive_search():
         print(f"\n⏱️  Response time: {response_time:.2f} seconds")
         print(f"📏 Response length: {response_length} characters")
         
-        log_to_csv(embedding_model, query, response_time, response_length)
+        log_to_csv(embedding_model, query, response_time, response_length, pl)
 
 if __name__ == "__main__":
     interactive_search()
