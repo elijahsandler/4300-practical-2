@@ -33,7 +33,7 @@ MODEL_CONFIG = {
 
 DISTANCE_METRIC = "cosine"
 
-def log_to_csv(embedding_model, prompt, llm_model, response_time, response_length, prompt_length):
+def log_to_csv(embedding_model, llm_model, prompt, response_time, response_length, prompt_length):
     """Log query details to CSV file"""
     file_exists = os.path.isfile('data_collection.csv')
     
