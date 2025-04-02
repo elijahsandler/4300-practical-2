@@ -36,12 +36,12 @@ INDEX_NAME = "embedding_index"
 DOC_PREFIX = "doc:"
 DISTANCE_METRIC = "COSINE"
 
-def log_to_csv(embedding_model, prompt, response_time, response_length, prompt_length):
+def log_to_csv(embedding_model, llm_model, prompt, response_time, response_length, prompt_length):
     """Log query details to CSV file"""
     file_exists = os.path.isfile('data_collection.csv')
     
     with open('data_collection.csv', 'a', newline='') as csvfile:
-        fieldnames = ['timestamp', 'ram', 'database', 'embedding', 'prompt', 'response_time_sec', 'response_length', 'prompt_length']
+        fieldnames = ['timestamp', 'ram', 'database', 'embedding', 'llm', 'prompt', 'response_time_sec', 'response_length', 'prompt_length']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         
         if not file_exists:
@@ -55,6 +55,7 @@ def log_to_csv(embedding_model, prompt, response_time, response_length, prompt_l
             'ram': primary_memory_size,
             'database': 'redis',
             'embedding': embedding_model,
+            'llm': llm_model,
             'prompt': prompt,
             'response_time_sec': response_time,
             'response_length': response_length,
@@ -108,7 +109,7 @@ def search_embeddings(query, embedding_model, top_k=3):
         print(e)
         return []
 
-def generate_rag_response(query, context_results, embedding_model='ollama'):
+def generate_rag_response(query, context_results, embedding_model='ollama', llm_model="mistral:latest"):
     # Prepare context string
     context_str = "\n".join(
         [
@@ -132,32 +133,40 @@ Answer:"""
     print(prompt)
     # Generate response using Ollama
     ollama_response = ollama.chat(
-        model="mistral:latest", messages=[{"role": "user", "content": prompt}]
+        model=llm_model, messages=[{"role": "user", "content": prompt}]
     )
     return ollama_response["message"]["content"], len(prompt)
 
 def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-def interactive_search():
+def interactive_search(embedding_model=None, llm_model="mistral:latest", query=None):
     clear_terminal()
-    print("🔍 Choose Embedding Model:")
-    print("1. nomic-embed-text (Ollama)")
-    print("2. all-MiniLM-L6-v2 (SentenceTransformers)")
-    print("3. mxbai-embed-large")
+    
+    if not embedding_model:
+        embedding_model = model_map.get(choice, "nomic")
+        print("🔍 Choose Embedding Model:")
+        print("1. nomic-embed-text (Ollama)")
+        print("2. all-MiniLM-L6-v2 (SentenceTransformers)")
+        print("3. mxbai-embed-large")
 
-    choice = input("Enter model number (1/2/3): ")
+        choice = input("Enter model number (1/2/3): ")
+    
     model_map = {"1": "nomic", "2": "minilm", "3": "mxbai-embed-large"}
-    embedding_model = model_map.get(choice, "nomic")
-
+    
+    prompt = 0
     while True:
-        query = input("\nEnter query (or 'exit'): ")
+        if query:
+            prompt = 1
+        else:
+            query = input("\nEnter query (or 'exit'): ")
+        
         if query.lower() == "exit":
             break
 
         start_time = time()
         results = search_embeddings(query, embedding_model)
-        response, pl = generate_rag_response(query, results)
+        response, pl = generate_rag_response(query, results, llm_model)
         end_time = time()
         
         response_time = end_time - start_time
@@ -167,7 +176,9 @@ def interactive_search():
         print(f"\n⏱️  Response time: {response_time:.2f} seconds")
         print(f"📏 Response length: {response_length} characters")
         
-        log_to_csv(embedding_model, query, response_time, response_length, pl)
+        log_to_csv(embedding_model, llm_model, query, response_time, response_length, pl)
+        if prompt == 1:
+            break
 
 if __name__ == "__main__":
     interactive_search()

@@ -156,8 +156,11 @@ def select_embedding_model():
     choice = input("Enter model number (1/2/3): ")
     return {"1": "nomic", "2": "minilm", "3": "mxbai"}.get(choice, "nomic")
 
-def main():
-    embedding_model = select_embedding_model()
+def main(embedding_model=None):
+    if not embedding_model:
+        embedding_model = select_embedding_model()
+    else:
+        embedding_model = {"1": "nomic", "2": "minilm", "3": "mxbai"}.get(embedding_model, "nomic")
     print(f"\nUsing {embedding_model} embedding model\n")
     
     clear_redis_store()
