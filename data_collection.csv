@@ -14,3 +14,13 @@ timestamp,database,embedding,prompt,response_time_sec,response_length
 2025-04-01T18:31:04.784799,redis,minilm,Add 23 to the AVL Tree below.  What imbalance case is created with inserting 23?		30	     /  \	    25  35	   /  20	,28.948222875595093,1562
 2025-04-01T18:31:22.056439,redis,minilm,Why is a B+ Tree a better than an AVL tree when indexing a large dataset?,16.359840154647827,1363
 2025-04-01T18:31:38.076904,redis,minilm,What is disk-based indexing and why is it important for database systems?  ,14.1299729347229,1287
+2025-04-01T23:57:08.914482,chroma,nomic,hello,9.232838153839111,140
+2025-04-02T00:14:42.226944,chroma,minilm,tell me about avl trees,23.204184770584106,1389
+2025-04-02T00:16:00.475793,chroma,mxbai,hello,3.3519222736358643,35
+2025-04-02T00:19:05.210253,chroma,nomic,tell me about avl trees,20.71609091758728,1044
+2025-04-02T00:19:51.645236,chroma,minilm,tell me about avl trees,22.1438090801239,1526
+2025-04-02T00:21:16.977186,chroma,nomic,hi,3.1696012020111084,33
+2025-04-02T00:21:30.783309,chroma,minilm,hello,1.855076789855957,35
+2025-04-02T00:21:48.305205,chroma,mxbai,hello,1.9409840106964111,35
+2025-04-02T00:22:54.527799,chroma,mxbai,"""/Users/madeleinejin/Desktop/DS 4300/Practical2/4300-practical-2/.venv/bin/python"" ""/Users/madeleinejin/Desktop/DS 4300/Practical2/4300-practical-2/src/ingest_chroma.py""",9.139387130737305,359
+2025-04-02T00:23:19.405601,chroma,mxbai,hello,1.9731221199035645,35
