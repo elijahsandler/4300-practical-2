@@ -1,5 +1,4 @@
 import weaviate
-import numpy as np
 import os
 import pymupdf
 import json
@@ -51,12 +50,16 @@ def store_embedding(file: str, page: str, chunk: str, embedding: list):
         "uuid": doc_id,
         "file": file,
         "page": page,
-        "chunk": chunk
+        "chunk": chunk,
+        "embedding_model": embedding_model
     }
 
-    # Store the data in Weaviate
-    client.collections.get(COLLECTION_NAME).data.insert(metadata, vector=embedding)
-    print(f"Stored embedding for: {chunk}")
+    # Store the data in Weaviate with our custom embedding
+    client.collections.get(COLLECTION_NAME).data.insert(
+        properties=data_object,
+        vector=embedding,
+        uuid=doc_id
+    )
 
 
 # Extract the text from a PDF by page

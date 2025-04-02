@@ -5,6 +5,7 @@ from sentence_transformers import SentenceTransformer
 from time import time
 from datetime import datetime
 import csv
+import psutil
 
 # Initialize models
 minilm_model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -21,16 +22,41 @@ MODEL_CONFIG = {
     "minilm": {
         "dim": 384,
         "collection_name": "minilm_collection",
-        "get_embedding": lambda text: minilm_model.encode(text).tolist()
+        "get_embedding": lambda text: ollama.embeddings(model="all-minilm", prompt=text)["embedding"]
     },
     "mxbai": {
         "dim": 1024,
         "collection_name": "mxbai_collection",
-        "get_embedding": lambda text: mxbai_model.encode(text).tolist()
+        "get_embedding": lambda text: ollama.embeddings(model="mxbai-embed-large", prompt=text)["embedding"]
     }
 }
 
 DISTANCE_METRIC = "cosine"
+
+def log_to_csv(embedding_model, prompt, response_time, response_length, prompt_length):
+    """Log query details to CSV file"""
+    file_exists = os.path.isfile('data_collection.csv')
+    
+    with open('data_collection.csv', 'a', newline='') as csvfile:
+        fieldnames = ['timestamp', 'ram', 'database', 'embedding', 'prompt', 'response_time_sec', 'response_length', 'prompt_length']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        
+        if not file_exists:
+            writer.writeheader()
+
+        mem = psutil.virtual_memory()
+        primary_memory_size = mem.total/(1024**3)
+            
+        writer.writerow({
+            'timestamp': datetime.now().isoformat(),
+            'ram': primary_memory_size,
+            'database': 'chroma',
+            'embedding': embedding_model,
+            'prompt': prompt,
+            'response_time_sec': response_time,
+            'response_length': response_length,
+            'prompt_length': prompt_length, 
+        })
 
 def get_collection(embedding_model):
     """Get or create the appropriate collection for the embedding model"""
@@ -43,33 +69,13 @@ def get_collection(embedding_model):
             metadata={"hnsw:space": DISTANCE_METRIC}
         )
 
-def log_to_csv(embedding_model, prompt, response_time, response_length):
-    """Log query details to CSV file"""
-    file_exists = os.path.isfile('data_collection.csv')
-    
-    with open('data_collection.csv', 'a', newline='') as csvfile:
-        fieldnames = ['timestamp', 'database', 'embedding', 'prompt', 'response_time_sec', 'response_length']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        
-        if not file_exists:
-            writer.writeheader()
-            
-        writer.writerow({
-            'timestamp': datetime.now().isoformat(),
-            'database': 'chroma',
-            'embedding': embedding_model,
-            'prompt': prompt,
-            'response_time_sec': response_time,
-            'response_length': response_length
-        })
-
 def get_embedding(text: str, embedding_model: str) -> list:
     try:
         return MODEL_CONFIG[embedding_model]["get_embedding"](text)
     except KeyError:
         return ollama.embeddings(model="nomic-embed-text", prompt=text)["embedding"]
 
-def search_embeddings(query, embedding_model, top_k=3):
+def search_embeddings(query, embedding_model, top_k=3): # k=3 or 5 ?
     try:
         query_embedding = get_embedding(query, embedding_model)
         collection = get_collection(embedding_model)
@@ -77,25 +83,24 @@ def search_embeddings(query, embedding_model, top_k=3):
         results = collection.query(
             query_embeddings=[query_embedding],
             n_results=top_k,
-            include=["documents", "metadatas", "distances"]
+            include=["metadatas", "distances"]
         )
         
         return [
             {
                 "file": meta['file'],
                 "page": meta['page'],
-                "chunk": doc,
+                "chunk": meta['chunk'],
                 "similarity": 1 - dist  # Convert distance to similarity
             }
-            for doc, meta, dist in zip(results['documents'][0], 
-                                    results['metadatas'][0], 
-                                    results['distances'][0])
+            for meta, dist in zip(results['metadatas'][0], 
+                               results['distances'][0])
         ]
     except Exception as e:
         print(f"Search error: {e}")
         return []
 
-def generate_rag_response(query, context_results, embedding_model='nomic'): # nomic is the default
+def generate_rag_response(query, context_results, embedding_model='nomic'):
     # Prepare context string
     context_str = "\n".join(
         [
@@ -116,12 +121,12 @@ Context:
 Query: {query}
 
 Answer:"""
-
+    print(prompt)
     # Generate response using Ollama
     ollama_response = ollama.chat(
         model="mistral:latest", messages=[{"role": "user", "content": prompt}]
     )
-    return ollama_response["message"]["content"]
+    return ollama_response["message"]["content"], len(prompt)
 
 def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -130,8 +135,8 @@ def interactive_search():
     clear_terminal()
     print("🔍 Choose Embedding Model:")
     print("1. nomic-embed-text (Ollama)")
-    print("2. all-MiniLM-L6-v2 (SentenceTransformers)")
-    print("3. mxbai-embed-large (SentenceTransformers)")
+    print("2. all-MiniLM-L6-v2 (Ollama)")
+    print("3. mxbai-embed-large (Ollama)")
 
     choice = input("Enter model number (1/2/3): ")
     model_map = {"1": "nomic", "2": "minilm", "3": "mxbai"}
@@ -144,7 +149,7 @@ def interactive_search():
 
         start_time = time()
         results = search_embeddings(query, embedding_model)
-        response = generate_rag_response(query, results, embedding_model)
+        response, pl = generate_rag_response(query, results, embedding_model)
         end_time = time()
         
         response_time = end_time - start_time
@@ -154,7 +159,7 @@ def interactive_search():
         print(f"\n⏱️  Response time: {response_time:.2f} seconds")
         print(f"📏 Response length: {response_length} characters")
         
-        log_to_csv(embedding_model, query, response_time, response_length)
+        log_to_csv(embedding_model, query, response_time, response_length, pl)
 
 if __name__ == "__main__":
     interactive_search()
