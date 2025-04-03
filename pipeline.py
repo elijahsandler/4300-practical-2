@@ -2,8 +2,8 @@ import src.ingest as ir
 import src.search as sr
 import src.ingest_chroma as ic
 import src.search_chroma as sc
-# import src.ingest_weaviate as iw
-# import src.search_weaviate as sw
+import src.ingest_weaviate as iw
+import src.search_weaviate as sw
 
 llm_models = ['mistral:latest', 'llama3.2:latest']
 embedding_models = ['minilm', 'mxbai', 'nomic']
@@ -14,17 +14,17 @@ def pipeline(prompts, chunk_sizes):
             # call redis ingest
             ir.main(model, chunk_size=size)
             # call chroma ingest
-            # ic.main(model, chunk_size=size)
+            ic.main(model, chunk_size=size)
             # call weaviate ingest
-            # iw.main(model)
+            iw.main(model, size)
             for p in prompts:
                 for llm in llm_models: 
                     # call redis search
                     sr.interactive_search(model, llm, p)
                     # call chroma search
-                    # sc.interactive_search(model, llm, p)
+                    sc.interactive_search(model, llm, p)
                     # call weaviate search
-                    # sw.interactive_search(model, llm, p)
+                    sw.interactive_search(model, llm, p)
 
 
 def main():

@@ -35,10 +35,14 @@ MODEL_CONFIG = {
     }
 }
 
+COLLECTION_NAME = "EmbeddingCollection"
+
 def clear_weaviate_store():
     print("Clearing existing Weaviate collections...")
     for model in MODEL_CONFIG.values():
         try:
+            if not client.is_connected():
+                client.connect()
             client.collections.delete(model["collection_name"])
         except:
             continue
@@ -46,11 +50,12 @@ def clear_weaviate_store():
 
 def create_weaviate_collection(embedding_model):
     # collection_name = MODEL_CONFIG[embedding_model]["model"]
-    collection_name = client.collections.get('EmbeddingCollection')
+    # collection_name = client.collections.get('EmbeddingCollection')
     dim = MODEL_CONFIG[embedding_model]["dim"]
-    
+    if not client.is_connected():
+        client.connect()
     client.collections.create(
-        name=collection_name,
+        name=COLLECTION_NAME,
         properties=[
             wvcc.Property(name="file", data_type=wvcc.DataType.TEXT),
             wvcc.Property(name="page", data_type=wvcc.DataType.TEXT),
@@ -65,6 +70,8 @@ def get_embedding(text: str, embedding_model: str) -> list:
     return MODEL_CONFIG[embedding_model]["get_embedding"](text)
 
 def store_embedding(file: str, page: str, chunk: str, embedding: list, embedding_model: str):
+    if not client.is_connected():
+        client.connect()
     collection = client.collections.get(MODEL_CONFIG[embedding_model]["collection_name"])
     
     data_object = {
@@ -144,8 +151,11 @@ def process_ipynbs(data_dir, embedding_model, chunk_size):
 
 def query_weaviate(query_text: str, embedding_model: str):
     embedding = get_embedding(query_text, embedding_model)
+    if not client.is_connected():
+        client.connect()
     collection = client.collections.get(MODEL_CONFIG[embedding_model]["collection_name"])
-    
+    if not client.is_connected():
+        client.connect()
     results = collection.query.near_vector(
         near_vector=embedding,
         limit=5,
@@ -167,12 +177,7 @@ def select_embedding_model():
     choice = input("Enter model number (1/2/3): ")
     return {"1": "nomic", "2": "minilm", "3": "mxbai"}.get(choice, "nomic")
 
-def main(embedding_model=None, chunk_size=300):
-    if not embedding_model:
-        embedding_model = select_embedding_model()
-    else:
-        embedding_model = {"1": "nomic", "2": "minilm", "3": "mxbai"}.get(embedding_model, "nomic")
-
+def main(embedding_model, chunk_size=300):
     print(f"\nUsing {embedding_model} embedding model\n")
     
     clear_weaviate_store()

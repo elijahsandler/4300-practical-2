@@ -167,7 +167,7 @@ def select_embedding_model():
     choice = input("Enter model number (1/2/3): ")
     return {"1": "nomic", "2": "minilm", "3": "mxbai"}.get(choice, "nomic")
 
-def main(embedding_model=None, chunk_size=300):
+def main(embedding_model, chunk_size=300):
     print(f"\nUsing {embedding_model} embedding model\n")
 
     initialize_collections()

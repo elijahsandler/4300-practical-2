@@ -66,9 +66,12 @@ def get_embedding(text: str, embedding_model: str) -> list:
         return ollama.embeddings(model="nomic-embed-text", prompt=text)["embedding"]
 
 def search_embeddings(query, embedding_model, top_k=3):
-    try:
+    # try:
+    if True:
         query_embedding = get_embedding(query, embedding_model)
-        collection = client.collections.get(MODEL_CONFIG[embedding_model]["model"])
+        collection = client.collections.get(COLLECTION_NAME)
+        if not client.is_connected():
+            client.connect()
         results = collection.query.near_vector(
             near_vector=query_embedding,
             limit=top_k,
@@ -84,9 +87,9 @@ def search_embeddings(query, embedding_model, top_k=3):
             }
             for obj in results.objects
         ]
-    except Exception as e:
-        print(f"Search error: {e}")
-        return []
+    # except Exception as e:
+    #     print(f"Search error: {e}")
+    #     return []
 
 def generate_rag_response(query, context_results, embedding_model='nomic', llm_model="mistral:latest"):
     # Prepare context string
@@ -131,6 +134,9 @@ def interactive_search(embedding_model=None, llm_model="mistral:latest", query=N
         if query.lower() == "exit":
             client.close()
             break
+
+        if not client.is_connected():
+            client.connect()
 
         start_time = time()
         results = search_embeddings(query, embedding_model)
