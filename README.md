@@ -8,9 +8,9 @@ Ensure all libraries in `requirements.txt` are installed. If they are not, run:
 2. Run `docker compose up -d` to spin up the containers in detatched mode. This will start a redis-stack container, a weaviate container, and a chromadb container. 
 3. Run `ingest.py` to index all the files in the `data` directory. These may include .pdf files, .py files, or .ipynb files. Select the embedding you wish to use, with the default being nomic. 
 
-If you wish to run the RAG model in chroma or weaviate, use the corresponding `ingest` and `search` file. 
+  If you wish to run the RAG model in chroma or weaviate, use the corresponding `ingest` and `search` file. 
 
-If the requested LLM or embedding model is not installed, the program will install it from ollama automatically. 
+  If the requested LLM or embedding model is not installed, the program will install it from ollama automatically. 
 
 4. Run `search.py`. The UI will show in your console. Be sure to select the same embedding you used prior. 
 
