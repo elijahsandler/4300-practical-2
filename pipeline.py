@@ -34,7 +34,8 @@ def main():
         "What does the $nin operator mean in a Mongo query?"
         ]
     chunks_list = [70, 100, 300]
-    pipeline(prompts_list, chunks_list)
+    for i in range(4):
+        pipeline(prompts_list, chunks_list)
 
 if __name__ == "__main__":
     main()
