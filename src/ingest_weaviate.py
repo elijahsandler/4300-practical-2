@@ -20,17 +20,17 @@ client = weaviate.connect_to_local(
 MODEL_CONFIG = {
     "nomic": {
         "dim": 768,
-        "model": "nomic-embed-text",
+        "collection_name": "EmbeddingCollection",
         "get_embedding": lambda text: ollama.embeddings(model="nomic-embed-text", prompt=text)["embedding"]
     },
     "minilm": {
         "dim": 384,
-        "model": "all-minilm",
-        "get_embedding": lambda text: ollama.embeddings(model="all-minilm", prompt=text)["embedding"]
+        "collection_name": "EmbeddingCollection",
+        "get_embedding": lambda text: ollama.embeddings(model="all-minilm", prompt=text)["embedding"] # lambda text: minilm_model.encode(text).tolist()
     },
     "mxbai": {
         "dim": 1024,
-        "model": "mxbai-embed-large",
+        "collection_name": "EmbeddingCollection",
         "get_embedding": lambda text: ollama.embeddings(model="mxbai-embed-large", prompt=text)["embedding"]
     }
 }
