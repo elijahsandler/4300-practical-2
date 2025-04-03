@@ -4,11 +4,11 @@ import ollama
 import pymupdf
 import json
 from time import time
-from sentence_transformers import SentenceTransformer
+# from sentence_transformers import SentenceTransformer
 
 # Initialize models
-minilm_model = SentenceTransformer("all-MiniLM-L6-v2")
-mxbai_model = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1") 
+# minilm_model = SentenceTransformer("all-MiniLM-L6-v2")
+# mxbai_model = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1") 
 client = chromadb.PersistentClient(path="./chroma_db")
 
 # pull required Ollama models
@@ -32,7 +32,7 @@ MODEL_CONFIG = {
         "dim": 384,
         "model": "all-minilm",
         "collection_name": "minilm_collection", # all-minilm
-        "get_embedding": lambda text: minilm_model.encode(text).tolist()  # Using SentenceTransformer directly
+        "get_embedding": lambda text: ollama.embeddings(model="all-minilm", prompt=text)["embedding"]
     },
     "mxbai": {
         "dim": 1024,

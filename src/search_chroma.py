@@ -1,15 +1,15 @@
 import chromadb
 import os
 import ollama
-from sentence_transformers import SentenceTransformer
+# from sentence_transformers import SentenceTransformer
 from time import time
 from datetime import datetime
 import csv
 import psutil
 
 # Initialize models
-minilm_model = SentenceTransformer("all-MiniLM-L6-v2")
-mxbai_model = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1") 
+# minilm_model = SentenceTransformer("all-MiniLM-L6-v2")
+# mxbai_model = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1") 
 client = chromadb.PersistentClient(path="./chroma_db")
 
 # Model configurations
