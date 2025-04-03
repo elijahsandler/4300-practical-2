@@ -30,9 +30,8 @@ MODEL_CONFIG = {
     },
     "minilm": {
         "dim": 384,
-        "model": "all-minilm",
-        "collection_name": "minilm_collection", # all-minilm
-        "get_embedding": lambda text: minilm_model.encode(text).tolist()  # Using SentenceTransformer directly
+        "collection_name": "minilm_collection",
+        "get_embedding": lambda text: ollama.embeddings(model="all-minilm", prompt=text)["embedding"] # lambda text: minilm_model.encode(text).tolist()
     },
     "mxbai": {
         "dim": 1024,
