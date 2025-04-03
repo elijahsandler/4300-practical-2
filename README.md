@@ -11,6 +11,7 @@ Ensure all libraries in `requirements.txt` are installed. If they are not, run:
 If you wish to run the RAG model in chroma or weaviate, use the corresponding `ingest` and `search` file. 
 
 If the requested LLM or embedding model is not installed, the program will install it from ollama automatically. 
+
 4. Run `search.py`. The UI will show in your console. Be sure to select the same embedding you used prior. 
 
 5. Every query will generate a row in `data_collection.csv` that tracks variables including prompt and response length, LLM and embedding model used, system RAM, and response time. 
