@@ -121,18 +121,6 @@ def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def interactive_search(embedding_model=None, llm_model="mistral:latest", query=None):
-    clear_terminal()
-    if not embedding_model:
-        embedding_model = model_map.get(choice, "nomic")
-        print("🔍 Choose Embedding Model:")
-        print("1. nomic-embed-text (Ollama)")
-        print("2. all-MiniLM-L6-v2 (SentenceTransformers)")
-        print("3. mxbai-embed-large")
-
-        choice = input("Enter model number (1/2/3): ")
-    
-    model_map = {"1": "nomic", "2": "minilm", "3": "mxbai-embed-large"}
-
     prompt = 0
     while True:
         if query:
