@@ -20,17 +20,17 @@ client = weaviate.connect_to_local(
 MODEL_CONFIG = {
     "nomic": {
         "dim": 768,
-        "collection_name": "NomicCollection",
+        "model": "nomic-embed-text",
         "get_embedding": lambda text: ollama.embeddings(model="nomic-embed-text", prompt=text)["embedding"]
     },
     "minilm": {
         "dim": 384,
-        "collection_name": "MiniLMCollection",
-        "get_embedding": lambda text: minilm_model.encode(text).tolist()
+        "model": "all-minilm",
+        "get_embedding": lambda text: ollama.embeddings(model="all-minilm", prompt=text)["embedding"]
     },
     "mxbai": {
         "dim": 1024,
-        "collection_name": "MxbaiCollection",
+        "model": "mxbai-embed-large",
         "get_embedding": lambda text: ollama.embeddings(model="mxbai-embed-large", prompt=text)["embedding"]
     }
 }
@@ -45,7 +45,8 @@ def clear_weaviate_store():
     print("Weaviate store cleared.")
 
 def create_weaviate_collection(embedding_model):
-    collection_name = MODEL_CONFIG[embedding_model]["collection_name"]
+    # collection_name = MODEL_CONFIG[embedding_model]["model"]
+    collection_name = client.collections.get('EmbeddingCollection')
     dim = MODEL_CONFIG[embedding_model]["dim"]
     
     client.collections.create(
@@ -178,13 +179,5 @@ def main():
     process_ipynbs("./data/", embedding_model)
     print(f"\nProcessing completed in {time() - start_time:.2f} seconds")
     
-    while True:
-        query_text = input("\nEnter query (or 'exit' to quit): ")
-        if query_text.lower() == 'exit':
-            break
-        query_weaviate(query_text, embedding_model)
-    
-    client.close()
-
 if __name__ == "__main__":
     main()

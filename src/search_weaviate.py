@@ -17,19 +17,20 @@ client = weaviate.connect_to_local(
 MODEL_CONFIG = {
     "nomic": {
         "dim": 768,
+        "model": "nomic-embed-text",
         "get_embedding": lambda text: ollama.embeddings(model="nomic-embed-text", prompt=text)["embedding"]
     },
     "minilm": {
         "dim": 384,
+        "model": "all-minilm",
         "get_embedding": lambda text: ollama.embeddings(model="all-minilm", prompt=text)["embedding"]
     },
     "mxbai": {
         "dim": 1024,
+        "model": "mxbai-embed-large",
         "get_embedding": lambda text: ollama.embeddings(model="mxbai-embed-large", prompt=text)["embedding"]
     }
 }
-
-COLLECTION_NAME = "EmbeddingCollection"
 
 def log_to_csv(embedding_model, prompt, response_time, response_length, prompt_length):
     file_exists = os.path.isfile('data_collection.csv')
@@ -64,8 +65,7 @@ def get_embedding(text: str, embedding_model: str) -> list:
 def search_embeddings(query, embedding_model, top_k=3):
     try:
         query_embedding = get_embedding(query, embedding_model)
-        collection = client.collections.get(COLLECTION_NAME)
-        
+        collection = client.collections.get(MODEL_CONFIG[embedding_model]["model"])
         results = collection.query.near_vector(
             near_vector=query_embedding,
             limit=top_k,
