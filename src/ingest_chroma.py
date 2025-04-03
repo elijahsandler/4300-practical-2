@@ -24,7 +24,8 @@ for model in required_models:
 MODEL_CONFIG = {
     "nomic": {
         "dim": 768,
-        "collection_name": "nomic_collection",
+        "model": "nomic-embed-text",
+        "collection_name": "nomic_collection", # nomic-embed-text
         "get_embedding": lambda text: ollama.embeddings(model="nomic-embed-text", prompt=text)["embedding"]
     },
     "minilm": {
@@ -34,7 +35,8 @@ MODEL_CONFIG = {
     },
     "mxbai": {
         "dim": 1024,
-        "collection_name": "mxbai_collection",
+        "model": "mxbai-embed-large",
+        "collection_name": "mxbai_collection", #mxbai-embed-large
         "get_embedding": lambda text: ollama.embeddings(model="mxbai-embed-large", prompt=text)["embedding"]
     }
 }

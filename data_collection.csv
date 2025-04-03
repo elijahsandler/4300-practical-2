@@ -1,0 +1,13 @@
+timestamp,ram,database,embedding,prompt,response_time_sec,response_length,prompt_length
+2025-04-02T10:44:08.195121,16.0,redis,nomic,tell me about avl trees,25.296018838882446,1237,2404
+2025-04-02T17:20:35.336343,16.0,chroma,mxbai,tell me about avl trees,20.99577808380127,1355,231
+2025-04-02T17:24:17.856614,16.0,chroma,nomic,tell me about avl trees,24.408142805099487,1592,973
+2025-04-02T17:33:59.713261,16.0,chroma,minilm,tell me about avl trees,31.881668090820312,1869,1389
+2025-04-02T17:36:33.811445,16.0,chroma,nomic,tell me about avl trees,17.301185131072998,1006,1434
+2025-04-02T17:37:33.582722,16.0,chroma,minilm,tell me about avl trees,18.739956855773926,1184,1389
+2025-04-02T17:38:54.242350,16.0,chroma,mxbai,tell me about avl trees,21.75897789001465,1201,1389
+2025-04-02T17:46:49.153761,16.0,weaviate,nomic,tell me about avl trees,21.327975273132324,1335,231
+2025-04-02T17:48:36.829274,16.0,weaviate,minilm,tell me about avl trees,21.2291100025177,1514,231
+2025-04-02T17:51:38.358285,16.0,weaviate,mxbai,tell me about avl trees,12.979315042495728,738,231
+2025-04-02T18:51:32.024098,16.0,weaviate,nomic,tell me about avl trees,13.01795506477356,664,231
+2025-04-02T19:04:17.655474,16.0,weaviate,nomic,tell me about avl trees,19.481357097625732,1197,231
