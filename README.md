@@ -10,3 +10,9 @@ Ensure all libraries in `requirements.txt` are installed. If they are not, run:
 4. Run `search.py`. The UI will show in your console. 
 
 Note that there is not persistance in the redis-stack container. Closing and re-opening the container will require you to rerun `ingest.py`.
+
+## Pulling embeddings
+Run these on the command line:
+1. ollama pull nomic-embed-text
+2. ollama pull all-minilm
+3. ollama pull mxbai-embed-large
