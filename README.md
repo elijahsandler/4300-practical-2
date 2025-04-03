@@ -5,17 +5,14 @@ Ensure all libraries in `requirements.txt` are installed. If they are not, run:
 
 ## Running the RAG
 1. Open Docker Desktop. 
-2. Run `docker compose up -d` to spin up the containers in detatched mode. This will start a redis-stack container, a weaviate container, and a chromadb container. 
-3. Run `ingest.py` to index all the files in the `data` directory. These may include .pdf files, .py files, or .ipynb files. Select the embedding you wish to use, with the default being nomic. 
+2. Run `docker compose up -d` to spin up the containers in detatched mode. 
+3. Run `ingest.py` to index all the files in the `data` directory. These may include pdfs, .py files, or .ipynb files. 
+4. Run `search.py`. The UI will show in your console. 
 
-  If you wish to run the RAG model in chroma or weaviate, use the corresponding `ingest` and `search` file. 
+Note that there is not persistance in the redis-stack container. Closing and re-opening the container will require you to rerun `ingest.py`.
 
-  If the requested LLM or embedding model is not installed, the program will install it from ollama automatically. 
-
-4. Run `search.py`. The UI will show in your console. Be sure to select the same embedding you used prior. 
-
-5. Every query will generate a row in `data_collection.csv` that tracks variables including prompt and response length, LLM and embedding model used, system RAM, and response time.
-
-6. To view the correct and full pipeline please look at the corresponding branch ```git checkout modify-for-pipeline```
-
-Note that there is not persistance. Closing and re-opening the container will require you to rerun `ingest.py`.
+## Pulling embeddings
+Run these on the command line:
+1. ollama pull nomic-embed-text
+2. ollama pull all-minilm
+3. ollama pull mxbai-embed-large
