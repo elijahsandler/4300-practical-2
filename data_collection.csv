@@ -1,13 +1,185 @@
-timestamp,ram,database,embedding,prompt,response_time_sec,response_length,prompt_length
-2025-04-02T10:44:08.195121,16.0,redis,nomic,tell me about avl trees,25.296018838882446,1237,2404
-2025-04-02T17:20:35.336343,16.0,chroma,mxbai,tell me about avl trees,20.99577808380127,1355,231
-2025-04-02T17:24:17.856614,16.0,chroma,nomic,tell me about avl trees,24.408142805099487,1592,973
-2025-04-02T17:33:59.713261,16.0,chroma,minilm,tell me about avl trees,31.881668090820312,1869,1389
-2025-04-02T17:36:33.811445,16.0,chroma,nomic,tell me about avl trees,17.301185131072998,1006,1434
-2025-04-02T17:37:33.582722,16.0,chroma,minilm,tell me about avl trees,18.739956855773926,1184,1389
-2025-04-02T17:38:54.242350,16.0,chroma,mxbai,tell me about avl trees,21.75897789001465,1201,1389
-2025-04-02T17:46:49.153761,16.0,weaviate,nomic,tell me about avl trees,21.327975273132324,1335,231
-2025-04-02T17:48:36.829274,16.0,weaviate,minilm,tell me about avl trees,21.2291100025177,1514,231
-2025-04-02T17:51:38.358285,16.0,weaviate,mxbai,tell me about avl trees,12.979315042495728,738,231
-2025-04-02T18:51:32.024098,16.0,weaviate,nomic,tell me about avl trees,13.01795506477356,664,231
-2025-04-02T19:04:17.655474,16.0,weaviate,nomic,tell me about avl trees,19.481357097625732,1197,231
+timestamp,ram,database,embedding,llm,prompt,response_time_sec,response_length,prompt_length
+2025-04-02T21:32:00.590617,24.0,redis,minilm,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,13.46757698059082,866,2044
+2025-04-02T21:32:08.810735,24.0,chroma,minilm,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,8.219511032104492,803,1323
+2025-04-02T21:32:24.044601,24.0,weaviate,minilm,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,15.233378171920776,1595,1323
+2025-04-02T21:32:33.171368,24.0,redis,minilm,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,9.123061895370483,757,2044
+2025-04-02T21:32:40.490440,24.0,chroma,minilm,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,7.318665981292725,905,1323
+2025-04-02T21:32:44.645390,24.0,weaviate,minilm,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,3.9924209117889404,841,1323
+2025-04-02T21:32:49.974486,24.0,redis,minilm,mistral:latest,When are linked lists faster than contiguously-allocated lists?,5.325278043746948,354,1986
+2025-04-02T21:32:55.236983,24.0,chroma,minilm,mistral:latest,When are linked lists faster than contiguously-allocated lists?,5.26157021522522,460,1194
+2025-04-02T21:33:02.347936,24.0,weaviate,minilm,mistral:latest,When are linked lists faster than contiguously-allocated lists?,6.981027841567993,708,1194
+2025-04-02T21:33:07.798577,24.0,redis,minilm,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,5.446095943450928,358,1986
+2025-04-02T21:33:10.736504,24.0,chroma,minilm,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,2.9370670318603516,433,1194
+2025-04-02T21:33:14.806837,24.0,weaviate,minilm,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,3.8881289958953857,779,1194
+2025-04-02T21:33:22.309639,24.0,redis,minilm,mistral:latest,What does the $nin operator mean in a Mongo query?,7.4975481033325195,437,1222
+2025-04-02T21:33:29.643727,24.0,chroma,minilm,mistral:latest,What does the $nin operator mean in a Mongo query?,7.333059787750244,460,717
+2025-04-02T21:33:38.688120,24.0,weaviate,minilm,mistral:latest,What does the $nin operator mean in a Mongo query?,8.898555994033813,747,717
+2025-04-02T21:33:45.467506,24.0,redis,minilm,llama3.2:latest,What does the $nin operator mean in a Mongo query?,6.773101806640625,414,1222
+2025-04-02T21:33:48.493642,24.0,chroma,minilm,llama3.2:latest,What does the $nin operator mean in a Mongo query?,3.0252840518951416,477,717
+2025-04-02T21:33:51.824229,24.0,weaviate,minilm,llama3.2:latest,What does the $nin operator mean in a Mongo query?,3.1913130283355713,546,717
+2025-04-02T21:35:35.248600,24.0,redis,mxbai,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,10.868744850158691,900,1898
+2025-04-02T21:35:43.114519,24.0,chroma,mxbai,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,7.864896059036255,794,1252
+2025-04-02T21:35:51.528907,24.0,weaviate,mxbai,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,8.158336877822876,887,1252
+2025-04-02T21:36:05.094962,24.0,redis,mxbai,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,13.560665845870972,1290,1898
+2025-04-02T21:36:13.640479,24.0,chroma,mxbai,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,8.544370889663696,1605,1252
+2025-04-02T21:36:17.221699,24.0,weaviate,mxbai,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,3.4132132530212402,682,1252
+2025-04-02T21:36:24.720360,24.0,redis,mxbai,mistral:latest,When are linked lists faster than contiguously-allocated lists?,7.495190143585205,587,1762
+2025-04-02T21:36:29.944999,24.0,chroma,mxbai,mistral:latest,When are linked lists faster than contiguously-allocated lists?,5.223819017410278,458,1062
+2025-04-02T21:36:33.344666,24.0,weaviate,mxbai,mistral:latest,When are linked lists faster than contiguously-allocated lists?,3.221358060836792,331,1062
+2025-04-02T21:36:41.778013,24.0,redis,mxbai,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,8.428412914276123,658,1762
+2025-04-02T21:36:43.941583,24.0,chroma,mxbai,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,2.162379741668701,255,1062
+2025-04-02T21:36:44.897914,24.0,weaviate,mxbai,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,0.7595949172973633,134,1062
+2025-04-02T21:36:52.568252,24.0,redis,mxbai,mistral:latest,What does the $nin operator mean in a Mongo query?,7.6655049324035645,397,1425
+2025-04-02T21:36:58.525601,24.0,chroma,mxbai,mistral:latest,What does the $nin operator mean in a Mongo query?,5.9563889503479,407,814
+2025-04-02T21:37:04.464253,24.0,weaviate,mxbai,mistral:latest,What does the $nin operator mean in a Mongo query?,5.7614359855651855,423,814
+2025-04-02T21:37:11.768390,24.0,redis,mxbai,llama3.2:latest,What does the $nin operator mean in a Mongo query?,7.298850774765015,394,1425
+2025-04-02T21:37:13.037841,24.0,chroma,mxbai,llama3.2:latest,What does the $nin operator mean in a Mongo query?,1.2687838077545166,123,814
+2025-04-02T21:37:17.070069,24.0,weaviate,mxbai,llama3.2:latest,What does the $nin operator mean in a Mongo query?,3.787410020828247,686,814
+2025-04-02T21:38:28.774492,24.0,redis,nomic,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,14.628408670425415,1191,1908
+2025-04-02T21:38:41.415449,24.0,chroma,nomic,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,12.640092849731445,1224,1252
+2025-04-02T21:38:51.841629,24.0,weaviate,nomic,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,10.19068694114685,1152,1252
+2025-04-02T21:39:04.074671,24.0,redis,nomic,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,12.228132724761963,1045,1908
+2025-04-02T21:39:13.431399,24.0,chroma,nomic,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,9.356262922286987,1563,1252
+2025-04-02T21:39:18.945709,24.0,weaviate,nomic,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,5.306675910949707,1081,1252
+2025-04-02T21:39:24.784782,24.0,redis,nomic,mistral:latest,When are linked lists faster than contiguously-allocated lists?,5.8343729972839355,403,1762
+2025-04-02T21:39:29.050182,24.0,chroma,nomic,mistral:latest,When are linked lists faster than contiguously-allocated lists?,4.264621019363403,352,1069
+2025-04-02T21:39:33.003362,24.0,weaviate,nomic,mistral:latest,When are linked lists faster than contiguously-allocated lists?,3.696377992630005,398,1069
+2025-04-02T21:39:41.281569,24.0,redis,nomic,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,8.273245811462402,681,1762
+2025-04-02T21:39:43.320863,24.0,chroma,nomic,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,2.0353941917419434,310,1069
+2025-04-02T21:39:44.521849,24.0,weaviate,nomic,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,1.013037919998169,169,1069
+2025-04-02T21:39:52.106629,24.0,redis,nomic,mistral:latest,What does the $nin operator mean in a Mongo query?,7.580179929733276,389,1315
+2025-04-02T21:40:00.162285,24.0,chroma,nomic,mistral:latest,What does the $nin operator mean in a Mongo query?,8.054816007614136,514,830
+2025-04-02T21:40:05.117225,24.0,weaviate,nomic,mistral:latest,What does the $nin operator mean in a Mongo query?,4.677145004272461,345,830
+2025-04-02T21:40:10.938599,24.0,redis,nomic,llama3.2:latest,What does the $nin operator mean in a Mongo query?,5.8170318603515625,329,1315
+2025-04-02T21:40:14.016462,24.0,chroma,nomic,llama3.2:latest,What does the $nin operator mean in a Mongo query?,3.076932191848755,429,830
+2025-04-02T21:40:17.806397,24.0,weaviate,nomic,llama3.2:latest,What does the $nin operator mean in a Mongo query?,3.595811128616333,557,830
+2025-04-02T21:40:51.658190,24.0,redis,minilm,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,10.592452049255371,831,1980
+2025-04-02T21:41:00.249672,24.0,chroma,minilm,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,8.589771032333374,818,1351
+2025-04-02T21:41:08.346072,24.0,weaviate,minilm,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,7.810238838195801,862,1351
+2025-04-02T21:41:18.501622,24.0,redis,minilm,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,10.150941133499146,851,1980
+2025-04-02T21:41:23.376137,24.0,chroma,minilm,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,4.873415946960449,916,1351
+2025-04-02T21:41:32.551388,24.0,weaviate,minilm,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,9.037623643875122,1820,1351
+2025-04-02T21:41:40.889329,24.0,redis,minilm,mistral:latest,When are linked lists faster than contiguously-allocated lists?,8.333522081375122,679,1861
+2025-04-02T21:41:52.888286,24.0,chroma,minilm,mistral:latest,When are linked lists faster than contiguously-allocated lists?,11.997939825057983,1185,1293
+2025-04-02T21:41:59.683552,24.0,weaviate,minilm,mistral:latest,When are linked lists faster than contiguously-allocated lists?,6.614705801010132,686,1293
+2025-04-02T21:42:07.244600,24.0,redis,minilm,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,7.552531003952026,591,1861
+2025-04-02T21:42:09.587568,24.0,chroma,minilm,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,2.3424181938171387,279,1293
+2025-04-02T21:42:11.864581,24.0,weaviate,minilm,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,2.075659990310669,393,1293
+2025-04-02T21:42:18.279722,24.0,redis,minilm,mistral:latest,What does the $nin operator mean in a Mongo query?,6.411121129989624,374,1222
+2025-04-02T21:42:27.206236,24.0,chroma,minilm,mistral:latest,What does the $nin operator mean in a Mongo query?,8.925615787506104,588,717
+2025-04-02T21:42:32.859900,24.0,weaviate,minilm,mistral:latest,What does the $nin operator mean in a Mongo query?,5.454716920852661,410,717
+2025-04-02T21:42:38.596919,24.0,redis,minilm,llama3.2:latest,What does the $nin operator mean in a Mongo query?,5.731622219085693,307,1222
+2025-04-02T21:42:41.267100,24.0,chroma,minilm,llama3.2:latest,What does the $nin operator mean in a Mongo query?,2.669254779815674,438,717
+2025-04-02T21:42:45.738622,24.0,weaviate,minilm,llama3.2:latest,What does the $nin operator mean in a Mongo query?,4.3098039627075195,700,717
+2025-04-02T21:43:56.727432,24.0,redis,mxbai,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,15.207789182662964,1416,1919
+2025-04-02T21:44:08.609708,24.0,chroma,mxbai,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,11.881541728973389,1118,1351
+2025-04-02T21:44:16.926426,24.0,weaviate,mxbai,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,8.184145212173462,829,1351
+2025-04-02T21:44:25.587159,24.0,redis,mxbai,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,8.656045913696289,728,1919
+2025-04-02T21:44:33.252975,24.0,chroma,mxbai,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,7.664663076400757,1157,1351
+2025-04-02T21:44:38.057548,24.0,weaviate,mxbai,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,4.6473212242126465,817,1351
+2025-04-02T21:44:46.802521,24.0,redis,mxbai,mistral:latest,When are linked lists faster than contiguously-allocated lists?,8.740477085113525,632,1662
+2025-04-02T21:44:48.770172,24.0,chroma,mxbai,mistral:latest,When are linked lists faster than contiguously-allocated lists?,1.9667658805847168,108,1062
+2025-04-02T21:44:53.684710,24.0,weaviate,mxbai,mistral:latest,When are linked lists faster than contiguously-allocated lists?,4.749591827392578,468,1062
+2025-04-02T21:45:00.913130,24.0,redis,mxbai,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,7.223801136016846,558,1662
+2025-04-02T21:45:03.827647,24.0,chroma,mxbai,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,2.9135611057281494,315,1062
+2025-04-02T21:45:04.715478,24.0,weaviate,mxbai,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,0.7378602027893066,120,1062
+2025-04-02T21:45:11.819757,24.0,redis,mxbai,mistral:latest,What does the $nin operator mean in a Mongo query?,7.099048376083374,317,1425
+2025-04-02T21:45:17.146548,24.0,chroma,mxbai,mistral:latest,What does the $nin operator mean in a Mongo query?,5.326020002365112,342,814
+2025-04-02T21:45:21.767552,24.0,weaviate,mxbai,mistral:latest,What does the $nin operator mean in a Mongo query?,4.466225862503052,377,814
+2025-04-02T21:45:29.837189,24.0,redis,mxbai,llama3.2:latest,What does the $nin operator mean in a Mongo query?,8.065103769302368,448,1425
+2025-04-02T21:45:32.941990,24.0,chroma,mxbai,llama3.2:latest,What does the $nin operator mean in a Mongo query?,3.1038918495178223,318,814
+2025-04-02T21:45:36.929162,24.0,weaviate,mxbai,llama3.2:latest,What does the $nin operator mean in a Mongo query?,3.842539072036743,649,814
+2025-04-02T21:46:27.009570,24.0,redis,nomic,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,16.1308810710907,1250,1878
+2025-04-02T21:46:42.005776,24.0,chroma,nomic,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,14.995057106018066,1472,1351
+2025-04-02T21:46:55.170814,24.0,weaviate,nomic,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,12.96677303314209,1435,1351
+2025-04-02T21:47:06.944681,24.0,redis,nomic,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,11.768867015838623,1100,1878
+2025-04-02T21:47:15.549673,24.0,chroma,nomic,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,8.603861093521118,1470,1351
+2025-04-02T21:47:23.657282,24.0,weaviate,nomic,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,7.95774507522583,1538,1351
+2025-04-02T21:47:30.972964,24.0,redis,nomic,mistral:latest,When are linked lists faster than contiguously-allocated lists?,7.311053991317749,448,1739
+2025-04-02T21:47:36.902705,24.0,chroma,nomic,mistral:latest,When are linked lists faster than contiguously-allocated lists?,5.928868770599365,563,1069
+2025-04-02T21:47:41.712102,24.0,weaviate,nomic,mistral:latest,When are linked lists faster than contiguously-allocated lists?,4.664935111999512,454,1069
+2025-04-02T21:47:48.486854,24.0,redis,nomic,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,6.769181966781616,509,1739
+2025-04-02T21:47:53.414035,24.0,chroma,nomic,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,4.926232099533081,488,1069
+2025-04-02T21:47:56.351721,24.0,weaviate,nomic,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,2.8083629608154297,552,1069
+2025-04-02T21:48:03.963734,24.0,redis,nomic,mistral:latest,What does the $nin operator mean in a Mongo query?,7.606431007385254,390,1315
+2025-04-02T21:48:09.936668,24.0,chroma,nomic,mistral:latest,What does the $nin operator mean in a Mongo query?,5.971991062164307,410,830
+2025-04-02T21:48:14.114544,24.0,weaviate,nomic,mistral:latest,What does the $nin operator mean in a Mongo query?,4.040175914764404,295,830
+2025-04-02T21:48:20.101906,24.0,redis,nomic,llama3.2:latest,What does the $nin operator mean in a Mongo query?,5.9831390380859375,342,1315
+2025-04-02T21:48:25.546358,24.0,chroma,nomic,llama3.2:latest,What does the $nin operator mean in a Mongo query?,5.443609714508057,777,830
+2025-04-02T21:48:27.965490,24.0,weaviate,nomic,llama3.2:latest,What does the $nin operator mean in a Mongo query?,2.248293876647949,345,830
+2025-04-02T21:48:52.840648,24.0,redis,minilm,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,7.683589935302734,577,1980
+2025-04-02T21:49:06.289608,24.0,chroma,minilm,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,13.448106050491333,1328,1351
+2025-04-02T21:49:15.346348,24.0,weaviate,minilm,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,8.912242889404297,949,1351
+2025-04-02T21:49:24.992728,24.0,redis,minilm,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,9.640928030014038,794,1980
+2025-04-02T21:49:34.227256,24.0,chroma,minilm,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,9.233436822891235,1451,1351
+2025-04-02T21:49:41.817412,24.0,weaviate,minilm,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,7.413467884063721,1468,1351
+2025-04-02T21:49:48.807296,24.0,redis,minilm,mistral:latest,When are linked lists faster than contiguously-allocated lists?,6.986604928970337,385,1861
+2025-04-02T21:49:56.026880,24.0,chroma,minilm,mistral:latest,When are linked lists faster than contiguously-allocated lists?,7.218873023986816,591,1293
+2025-04-02T21:50:01.209558,24.0,weaviate,minilm,mistral:latest,When are linked lists faster than contiguously-allocated lists?,5.0443809032440186,508,1293
+2025-04-02T21:50:09.479456,24.0,redis,minilm,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,8.267205715179443,591,1861
+2025-04-02T21:50:12.818032,24.0,chroma,minilm,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,3.337888717651367,294,1293
+2025-04-02T21:50:15.592392,24.0,weaviate,minilm,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,2.6306049823760986,425,1293
+2025-04-02T21:50:23.190023,24.0,redis,minilm,mistral:latest,What does the $nin operator mean in a Mongo query?,7.595322847366333,392,1222
+2025-04-02T21:50:28.151441,24.0,chroma,minilm,mistral:latest,What does the $nin operator mean in a Mongo query?,4.960877895355225,310,717
+2025-04-02T21:50:33.524608,24.0,weaviate,minilm,mistral:latest,What does the $nin operator mean in a Mongo query?,5.229856967926025,382,717
+2025-04-02T21:50:39.319014,24.0,redis,minilm,llama3.2:latest,What does the $nin operator mean in a Mongo query?,5.789967060089111,311,1222
+2025-04-02T21:50:44.272065,24.0,chroma,minilm,llama3.2:latest,What does the $nin operator mean in a Mongo query?,4.952118873596191,584,717
+2025-04-02T21:50:47.545305,24.0,weaviate,minilm,llama3.2:latest,What does the $nin operator mean in a Mongo query?,3.12823224067688,550,717
+2025-04-02T21:51:38.715980,24.0,redis,mxbai,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,9.533292055130005,658,1919
+2025-04-02T21:51:52.113828,24.0,chroma,mxbai,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,13.396950006484985,1249,1351
+2025-04-02T21:52:04.203693,24.0,weaviate,mxbai,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,11.93461298942566,1164,1351
+2025-04-02T21:52:17.190940,24.0,redis,mxbai,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,12.983973979949951,1155,1919
+2025-04-02T21:52:24.621199,24.0,chroma,mxbai,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,7.429718971252441,1135,1351
+2025-04-02T21:52:33.007329,24.0,weaviate,mxbai,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,8.247684001922607,1735,1351
+2025-04-02T21:52:39.618068,24.0,redis,mxbai,mistral:latest,When are linked lists faster than contiguously-allocated lists?,6.6060497760772705,494,1662
+2025-04-02T21:52:44.674884,24.0,chroma,mxbai,mistral:latest,When are linked lists faster than contiguously-allocated lists?,5.056219100952148,404,1062
+2025-04-02T21:52:49.472500,24.0,weaviate,mxbai,mistral:latest,When are linked lists faster than contiguously-allocated lists?,4.6563169956207275,460,1062
+2025-04-02T21:52:55.116432,24.0,redis,mxbai,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,5.6393139362335205,381,1662
+2025-04-02T21:52:56.533141,24.0,chroma,mxbai,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,1.416193962097168,176,1062
+2025-04-02T21:52:57.459327,24.0,weaviate,mxbai,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,0.7749638557434082,130,1062
+2025-04-02T21:53:04.950894,24.0,redis,mxbai,mistral:latest,What does the $nin operator mean in a Mongo query?,7.486706972122192,383,1425
+2025-04-02T21:53:11.695761,24.0,chroma,mxbai,mistral:latest,What does the $nin operator mean in a Mongo query?,6.744203090667725,436,814
+2025-04-02T21:53:16.687265,24.0,weaviate,mxbai,mistral:latest,What does the $nin operator mean in a Mongo query?,4.845374345779419,402,814
+2025-04-02T21:53:25.482954,24.0,redis,mxbai,llama3.2:latest,What does the $nin operator mean in a Mongo query?,8.791153192520142,515,1425
+2025-04-02T21:53:28.160199,24.0,chroma,mxbai,llama3.2:latest,What does the $nin operator mean in a Mongo query?,2.6765248775482178,408,814
+2025-04-02T21:53:32.621819,24.0,weaviate,mxbai,llama3.2:latest,What does the $nin operator mean in a Mongo query?,4.3089799880981445,781,814
+2025-04-02T21:54:11.713285,24.0,redis,nomic,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,14.099723100662231,1174,1919
+2025-04-02T21:54:24.671645,24.0,chroma,nomic,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,12.957385778427124,1275,1351
+2025-04-02T21:54:35.864237,24.0,weaviate,nomic,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,11.040709018707275,1288,1351
+2025-04-02T21:54:48.127017,24.0,redis,nomic,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,12.259251832962036,1108,1919
+2025-04-02T21:54:53.027540,24.0,chroma,nomic,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,4.899519920349121,650,1351
+2025-04-02T21:55:01.029403,24.0,weaviate,nomic,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,7.870007038116455,1510,1351
+2025-04-02T21:55:11.847485,24.0,redis,nomic,mistral:latest,When are linked lists faster than contiguously-allocated lists?,10.816179990768433,717,1837
+2025-04-02T21:55:17.801107,24.0,chroma,nomic,mistral:latest,When are linked lists faster than contiguously-allocated lists?,5.95296311378479,512,1069
+2025-04-02T21:55:22.911651,24.0,weaviate,nomic,mistral:latest,When are linked lists faster than contiguously-allocated lists?,4.9691832065582275,559,1069
+2025-04-02T21:55:28.048651,24.0,redis,nomic,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,5.135409832000732,296,1837
+2025-04-02T21:55:29.480803,24.0,chroma,nomic,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,1.4316279888153076,160,1069
+2025-04-02T21:55:32.245533,24.0,weaviate,nomic,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,2.4681320190429688,461,1069
+2025-04-02T21:55:39.825434,24.0,redis,nomic,mistral:latest,What does the $nin operator mean in a Mongo query?,7.577104091644287,394,1315
+2025-04-02T21:55:44.865783,24.0,chroma,nomic,mistral:latest,What does the $nin operator mean in a Mongo query?,5.0398478507995605,312,830
+2025-04-02T21:55:49.662107,24.0,weaviate,nomic,mistral:latest,What does the $nin operator mean in a Mongo query?,4.672707796096802,329,830
+2025-04-02T21:55:56.153453,24.0,redis,nomic,llama3.2:latest,What does the $nin operator mean in a Mongo query?,6.4867658615112305,392,1315
+2025-04-02T21:55:59.498694,24.0,chroma,nomic,llama3.2:latest,What does the $nin operator mean in a Mongo query?,3.3445069789886475,482,830
+2025-04-02T21:56:03.131260,24.0,weaviate,nomic,llama3.2:latest,What does the $nin operator mean in a Mongo query?,3.440499782562256,579,830
+2025-04-02T21:56:49.838736,24.0,redis,minilm,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,11.04512619972229,885,2044
+2025-04-02T21:56:57.106972,24.0,chroma,minilm,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,7.267442941665649,690,1323
+2025-04-02T21:57:07.736714,24.0,weaviate,minilm,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,10.490326881408691,1081,1323
+2025-04-02T21:57:17.251579,24.0,redis,minilm,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,9.510438203811646,733,2044
+2025-04-02T21:57:21.547006,24.0,chroma,minilm,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,4.294841766357422,734,1323
+2025-04-02T21:57:25.830081,24.0,weaviate,minilm,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,4.1339170932769775,815,1323
+2025-04-02T21:57:29.167376,24.0,redis,minilm,mistral:latest,When are linked lists faster than contiguously-allocated lists?,3.333228826522827,131,1986
+2025-04-02T21:57:35.218560,24.0,chroma,minilm,mistral:latest,When are linked lists faster than contiguously-allocated lists?,6.050194025039673,526,1194
+2025-04-02T21:57:42.741944,24.0,weaviate,minilm,mistral:latest,When are linked lists faster than contiguously-allocated lists?,7.310328245162964,766,1194
+2025-04-02T21:57:50.908054,24.0,redis,minilm,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,8.162839889526367,614,1986
+2025-04-02T21:57:53.145885,24.0,chroma,minilm,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,2.2373249530792236,317,1194
+2025-04-02T21:57:58.894020,24.0,weaviate,minilm,llama3.2:latest,When are linked lists faster than contiguously-allocated lists?,5.538105726242065,895,1194
+2025-04-02T21:58:08.441042,24.0,redis,minilm,mistral:latest,What does the $nin operator mean in a Mongo query?,9.54226303100586,561,1222
+2025-04-02T21:58:14.643510,24.0,chroma,minilm,mistral:latest,What does the $nin operator mean in a Mongo query?,6.201831102371216,413,717
+2025-04-02T21:58:18.949911,24.0,weaviate,minilm,mistral:latest,What does the $nin operator mean in a Mongo query?,4.125396013259888,338,717
+2025-04-02T21:58:25.357455,24.0,redis,minilm,llama3.2:latest,What does the $nin operator mean in a Mongo query?,6.402684211730957,366,1222
+2025-04-02T21:58:28.735769,24.0,chroma,minilm,llama3.2:latest,What does the $nin operator mean in a Mongo query?,3.3776841163635254,531,717
+2025-04-02T21:58:31.566228,24.0,weaviate,minilm,llama3.2:latest,What does the $nin operator mean in a Mongo query?,2.6840641498565674,435,717
+2025-04-02T22:00:07.096322,24.0,redis,mxbai,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,7.1236279010772705,528,1898
+2025-04-02T22:00:13.805473,24.0,chroma,mxbai,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,6.708216190338135,633,1252
+2025-04-02T22:00:22.572612,24.0,weaviate,mxbai,mistral:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,8.524959087371826,951,1252
+2025-04-02T22:00:34.019145,24.0,redis,mxbai,llama3.2:latest,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,11.442495346069336,1015,1898

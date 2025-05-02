@@ -35,10 +35,14 @@ MODEL_CONFIG = {
     }
 }
 
+COLLECTION_NAME = "EmbeddingCollection"
+
 def clear_weaviate_store():
     print("Clearing existing Weaviate collections...")
     for model in MODEL_CONFIG.values():
         try:
+            if not client.is_connected():
+                client.connect()
             client.collections.delete(model["collection_name"])
         except:
             continue
@@ -46,11 +50,12 @@ def clear_weaviate_store():
 
 def create_weaviate_collection(embedding_model):
     # collection_name = MODEL_CONFIG[embedding_model]["model"]
-    collection_name = client.collections.get('EmbeddingCollection')
+    # collection_name = client.collections.get('EmbeddingCollection')
     dim = MODEL_CONFIG[embedding_model]["dim"]
-    
+    if not client.is_connected():
+        client.connect()
     client.collections.create(
-        name=collection_name,
+        name=COLLECTION_NAME,
         properties=[
             wvcc.Property(name="file", data_type=wvcc.DataType.TEXT),
             wvcc.Property(name="page", data_type=wvcc.DataType.TEXT),
@@ -65,6 +70,8 @@ def get_embedding(text: str, embedding_model: str) -> list:
     return MODEL_CONFIG[embedding_model]["get_embedding"](text)
 
 def store_embedding(file: str, page: str, chunk: str, embedding: list, embedding_model: str):
+    if not client.is_connected():
+        client.connect()
     collection = client.collections.get(MODEL_CONFIG[embedding_model]["collection_name"])
     
     data_object = {
@@ -87,12 +94,12 @@ def split_text_into_chunks(text, chunk_size=300, overlap=50):
     words = text.split()
     return [" ".join(words[i:i + chunk_size]) for i in range(0, len(words), chunk_size - overlap)]
 
-def process_files(data_dir, file_extension, process_func, embedding_model):
+def process_files(data_dir, file_extension, process_func, embedding_model, chunk_size):
     for file_name in os.listdir(data_dir):
         if file_name.endswith(file_extension):
             file_path = os.path.join(data_dir, file_name)
             for page_num, text in process_func(file_path):
-                chunks = split_text_into_chunks(text)
+                chunks = split_text_into_chunks(text, chunk_size)
                 for chunk in chunks:
                     embedding = get_embedding(chunk, embedding_model)
                     store_embedding(
@@ -104,14 +111,14 @@ def process_files(data_dir, file_extension, process_func, embedding_model):
                     )
             print(f"Processed {file_name} with {embedding_model}")
 
-def process_pdfs(data_dir, embedding_model):
-    process_files(data_dir, ".pdf", extract_text_from_pdf, embedding_model)
+def process_pdfs(data_dir, embedding_model, chunk_size):
+    process_files(data_dir, ".pdf", extract_text_from_pdf, embedding_model, chunk_size)
 
-def process_pys(data_dir, embedding_model):
+def process_pys(data_dir, embedding_model, chunk_size):
     for file_name in os.listdir(data_dir):
         if file_name.endswith(".py"):
             with open(os.path.join(data_dir, file_name), "r", encoding="utf-8") as file:
-                chunks = split_text_into_chunks(file.read())
+                chunks = split_text_into_chunks(file.read(), chunk_size)
                 for chunk in chunks:
                     embedding = get_embedding(chunk, embedding_model)
                     store_embedding(
@@ -123,14 +130,14 @@ def process_pys(data_dir, embedding_model):
                     )
             print(f"Processed {file_name} with {embedding_model}")
 
-def process_ipynbs(data_dir, embedding_model):
+def process_ipynbs(data_dir, embedding_model, chunk_size):
     for file_name in os.listdir(data_dir):
         if file_name.endswith(".ipynb"):
             with open(os.path.join(data_dir, file_name), "r", encoding="utf-8") as file:
                 notebook = json.load(file)
                 for page_num, cell in enumerate(notebook.get("cells", [])):
                     if cell.get("cell_type") == "code":
-                        chunks = split_text_into_chunks("\n".join(cell.get("source", [])))
+                        chunks = split_text_into_chunks("\n".join(cell.get("source", [])), chunk_size)
                         for chunk in chunks:
                             embedding = get_embedding(chunk, embedding_model)
                             store_embedding(
@@ -144,8 +151,11 @@ def process_ipynbs(data_dir, embedding_model):
 
 def query_weaviate(query_text: str, embedding_model: str):
     embedding = get_embedding(query_text, embedding_model)
+    if not client.is_connected():
+        client.connect()
     collection = client.collections.get(MODEL_CONFIG[embedding_model]["collection_name"])
-    
+    if not client.is_connected():
+        client.connect()
     results = collection.query.near_vector(
         near_vector=embedding,
         limit=5,
@@ -167,17 +177,20 @@ def select_embedding_model():
     choice = input("Enter model number (1/2/3): ")
     return {"1": "nomic", "2": "minilm", "3": "mxbai"}.get(choice, "nomic")
 
-def main():
-    embedding_model = select_embedding_model()
+def main(embedding_model, chunk_size=300):
     print(f"\nUsing {embedding_model} embedding model\n")
+    
     clear_weaviate_store()
     create_weaviate_collection(embedding_model)
 
     start_time = time()
-    process_pdfs("./data/", embedding_model)
-    process_pys("./data/", embedding_model)
-    process_ipynbs("./data/", embedding_model)
+    process_pdfs("./data/", embedding_model, chunk_size)
+    process_pys("./data/", embedding_model, chunk_size)
+    process_ipynbs("./data/", embedding_model, chunk_size)
     print(f"\nProcessing completed in {time() - start_time:.2f} seconds")
+    
+   
+    query_weaviate("What is the capital of France?", embedding_model)
     
     client.close()
 
